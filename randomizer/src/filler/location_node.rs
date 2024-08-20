@@ -21,7 +21,7 @@ impl LocationNode {
         &self.checks
     }
 
-    pub fn get_paths(self) -> Option<Vec<Path>> {
-        self.paths
+    pub fn get_paths(&self) -> &Option<Vec<Path>> {
+        &self.paths
     }
 }

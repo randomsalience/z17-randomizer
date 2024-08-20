@@ -132,6 +132,7 @@ pub fn patch(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     // patch_open_lost_woods(patcher);
     patch_magic_shop(patcher);
     patch_ice_ruins(patcher);
+    patch_npc_hinox(patcher);
 
     patcher.modify_objs(FieldLight, 18, [disable(529)]);
 
@@ -2112,6 +2113,18 @@ fn patch_no_progression_enemies(patcher: &mut Patcher, settings: &Settings) {
             disable(234), // Keelon
             disable(235), // Keelon
         ],
+    );
+}
+
+fn patch_npc_hinox(patcher: &mut Patcher) {
+    // Change Hinox flag to an event flag
+    patcher.modify_objs(
+        CaveDark,
+        6,
+        [
+            set_46_args(8, Flag::NPC_HINOX),
+            set_enable_flag(8, Flag::NPC_HINOX),
+        ]
     );
 }
 

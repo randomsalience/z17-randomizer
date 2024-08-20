@@ -1,5 +1,7 @@
 use crate::filler::filler_item::Vane;
 use crate::filler::tower_stage::TowerStage;
+use crate::filler::location::Location;
+use crate::filler::progress::Progress;
 use crate::filler::trials::TrialsConfig;
 use crate::filler::{cracks, text, treacherous_tower, trials, vanes};
 use crate::world::WorldGraph;
@@ -11,14 +13,16 @@ use crate::{
     system::UserConfig,
 };
 use filler::cracks::Crack;
-use filler::filler_item::Randomizable;
+use filler::filler_item::{PyRandomizable, Randomizable};
 use game::Item::{self};
 use log::{debug, error, info};
 use macros::fail;
 use modinfo::Settings;
 use patch::Patcher;
 use path_absolutize::*;
+use pyo3::prelude::*;
 use rand::{rngs::StdRng, SeedableRng};
+use regex::Regex;
 use regions::Subregion;
 use rom::Rom;
 use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
@@ -30,6 +34,7 @@ use std::{
     hash::{Hash, Hasher},
     io::{self, Write},
     ops::Deref,
+    str::FromStr,
 };
 use twox_hash::XxHash64;
 
@@ -305,7 +310,42 @@ pub struct Text {
     credits: String,
 }
 
+/// Strip all but certain characters from a string
+fn sanitize(string: &str) -> String {
+    let to_space = Regex::new(r"[_]").unwrap();
+    let remove = Regex::new(r"[^A-Za-z0-9'\(\) ]").unwrap();
+    remove.replace_all(&to_space.replace_all(string, " "), "").to_string()
+}
+
+#[derive(Serialize, Default, Debug, Clone)]
+#[pyclass]
+pub struct ArchipelagoInfo {
+    #[pyo3(get, set)]
+    pub name: String,
+
+    #[pyo3(get, set)]
+    pub item_names: DashMap<String, String>,
+}
+
+#[pymethods]
+impl ArchipelagoInfo {
+    #[new]
+    pub fn new() -> ArchipelagoInfo {
+        ArchipelagoInfo::default()
+    }
+}
+
+impl ArchipelagoInfo {
+    pub fn get_item_name(&self, location_name: &str) -> Result<String> {
+        self.item_names
+            .get(location_name)
+            .map(|s| sanitize(s))
+            .ok_or(Error::internal(format!("Patch file does not contain an item for location {}", location_name)))
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
+#[pyclass]
 pub struct SeedInfo {
     #[serde(default)]
     pub seed: u32,
@@ -314,6 +354,9 @@ pub struct SeedInfo {
 
     #[serde(skip_deserializing)]
     pub hash: SeedHash,
+
+    #[serde(skip_deserializing)]
+    pub archipelago_info: Option<ArchipelagoInfo>,
 
     pub settings: Settings,
 
@@ -334,6 +377,7 @@ pub struct SeedInfo {
     pub crack_map: CrackMap,
 
     #[serde(skip_deserializing, rename = "weather_vane_map")]
+    #[pyo3(get)]
     pub vane_map: VaneMap,
 
     #[serde(skip_deserializing)]
@@ -353,6 +397,10 @@ impl SeedInfo {
     pub fn is_excluded(&self, check_name: &str) -> bool {
         self.full_exclusions.contains(check_name)
     }
+
+    pub fn is_archipelago(&self) -> bool {
+        self.archipelago_info.is_some()
+    }
 }
 
 impl Default for SeedInfo {
@@ -361,6 +409,7 @@ impl Default for SeedInfo {
             seed: 0,
             version: "".to_owned(),
             hash: Default::default(),
+            archipelago_info: None,
             settings: Default::default(),
             full_exclusions: Default::default(),
             crack_map: Default::default(),
@@ -400,7 +449,7 @@ pub fn generate_seed(
 ///
 /// The hash is calculated as `u64`, truncated to `u16` (5 digits), then converted to a Symbolic form that can be
 /// displayed in-game as well as in the spoiler log.
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct SeedHash {
     item_hash: String,
     text_hash: String,
@@ -524,6 +573,7 @@ fn calculate_seed_info(seed: u32, settings: Settings, hash: SeedHash, rng: &mut 
         seed,
         version: VERSION.to_owned(),
         hash,
+        archipelago_info: None,
         settings,
         full_exclusions: Default::default(),
         vane_map,
@@ -550,8 +600,101 @@ fn calculate_seed_info(seed: u32, settings: Settings, hash: SeedHash, rng: &mut 
     Ok(seed_info)
 }
 
+#[pyfunction]
+pub fn randomize_pre_fill(seed: u32, settings: Settings, archipelago_info: Option<ArchipelagoInfo>) -> SeedInfo {
+    let rng = &mut StdRng::seed_from_u64(seed.clone() as u64);
+    let hash = SeedHash::new(seed.clone(), &settings);
+    let crack_map = cracks::build_crack_map(&settings, rng).unwrap();
+    let vane_map = vanes::build_vanes_map(&settings, rng).unwrap();
+    let text = text::generate(rng).unwrap();
+    let trials_config = trials::configure(rng, &settings).unwrap();
+    let treacherous_tower_floors = treacherous_tower::choose_floors(&settings, rng).unwrap();
+    let world_graph = world::build_world_graph(&crack_map);
+
+    SeedInfo {
+        seed,
+        version: VERSION.to_owned(),
+        hash,
+        archipelago_info,
+        settings,
+        full_exclusions: Default::default(),
+        vane_map,
+        crack_map,
+        layout: Default::default(),
+        metrics: Default::default(),
+        hints: Default::default(),
+        trials_config,
+        world_graph,
+        text,
+        treacherous_tower_floors,
+    }
+}
+
+#[pymethods]
+impl SeedInfo {
+    pub fn get_region_graph(&self) -> DashMap<String, (Vec<String>, Vec<String>)> {
+        self.world_graph.iter().map(|(location, location_node)|
+            (location.to_string(), (
+                match location_node.get_checks() {
+                    None => Vec::new(),
+                    Some(checks) => checks.iter().map(|check| check.get_name().to_string()).collect(),
+                },
+                match location_node.get_paths() {
+                    None => Vec::new(),
+                    Some(paths) => paths.iter().map(|path| path.get_destination().to_string()).collect(),
+                }
+            ))
+        ).collect()
+    }
+
+    pub fn can_reach(&self, check_name: &str, items: Vec<PyRandomizable>) -> bool {
+        let mut progress = Progress::new(&self);
+        for item in items {
+            progress.add_item(item);
+        }
+
+        if let Some(check) = self.world_graph.get_check(check_name) {
+            return check.can_access(&progress);
+        }
+
+        panic!("{} is not the name of a check", check_name);
+    }
+
+    pub fn can_traverse(&self, source_name: &str, target_name: &str, items: Vec<PyRandomizable>) -> bool {
+        let mut progress = Progress::new(&self);
+        for item in items {
+            progress.add_item(item);
+        }
+
+        let source_region = Location::from_str(source_name)
+            .expect(&format!("No region {} found", source_name));
+        if let Some(paths) = self.world_graph[&source_region].get_paths() {
+            for path in paths {
+                if path.get_destination().to_string() == target_name {
+                    return path.can_access(&progress);
+                }
+            }
+        }
+
+        panic!("No path from {} to {}", source_name, target_name);
+    }
+
+    pub fn build_layout(&mut self, new_check_map: DashMap<String, PyRandomizable>) {
+        let mut check_map = filler::prefill_check_map(&mut self.world_graph);
+        for (name, item) in new_check_map {
+            check_map.insert(name, Some(item.into()));
+        }
+        filler::build_layout(self, &mut check_map).unwrap();
+    }
+
+    pub fn patch(&self, rom_path: &str, out_path: &str) {
+        let user_config = UserConfig::new(rom_path.into(), out_path.into());
+        patch_seed(self, &user_config, false, true).unwrap();
+    }
+}
+
 pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool, no_spoiler: bool) -> Result<()> {
-    println!();
+    info!("");
 
     if !no_patch {
         info!("Starting Patch Process...");

@@ -7,6 +7,7 @@ use game::Course::{CaveDark, FieldDark, FieldLight, IndoorDark, IndoorLight};
 use log::info;
 use modinfo::settings::cracksanity::Cracksanity;
 use modinfo::Settings;
+use pyo3::pyclass;
 use rand::rngs::StdRng;
 use rand::Rng;
 use rom::flag::Flag;
@@ -18,6 +19,7 @@ use std::hash::Hash;
 
 /// Crack item
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[pyclass]
 pub enum Crack {
     // --- Hyrule --- //
     StylishWoman,

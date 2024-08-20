@@ -56,21 +56,28 @@ impl From<(Register, i32)> for AddressingMode {
 impl From<(Register, Register)> for AddressingMode {
     fn from(parameter: (Register, Register)) -> Self {
         let (rn, rm) = parameter;
-        Self { rn, plus: true, offset: Offset::Register(rm) }
+        Self { rn, plus: true, offset: Offset::Register(rm, 0) }
+    }
+}
+
+impl From<(Register, Register, u32)> for AddressingMode {
+    fn from(parameter: (Register, Register, u32)) -> Self {
+        let (rn, rm, shift) = parameter;
+        Self { rn, plus: true, offset: Offset::Register(rm, shift) }
     }
 }
 
 #[derive(Debug)]
 enum Offset {
     Immediate(u32),
-    Register(Register),
+    Register(Register, u32),
 }
 
 impl Offset {
     pub fn code(&self) -> u32 {
         (match self {
             Self::Immediate(offset) => (*offset) | 0x1000000,
-            Self::Register(register) => register.shift(0) | 0x3000000,
+            Self::Register(register, shift) => register.shift(0) | (shift << 7) | 0x3000000,
         }) | 0x4000000
     }
 }

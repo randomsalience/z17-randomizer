@@ -381,12 +381,15 @@ fn place_static(check_map: &mut CheckMap, pool: &mut Pool, item: Item, check_nam
 }
 
 /// Super dirty mapping I hate it
-fn build_layout(SeedInfo { layout, world_graph, .. }: &mut SeedInfo, check_map: &mut CheckMap) -> Result<(), Error> {
+pub fn build_layout(SeedInfo { layout, world_graph, .. }: &mut SeedInfo, check_map: &mut CheckMap) -> Result<(), Error> {
     for location_node in world_graph.values() {
         for check in location_node.clone().get_checks().iter().flatten().collect::<Vec<&Check>>() {
             if let Some(loc_info) = check.get_location_info() {
-                let item = check_map.get(check.get_name()).unwrap().unwrap();
-                layout.set(loc_info, item);
+                if let Some(item) = check_map.get(check.get_name()).unwrap() {
+                    layout.set(loc_info, *item);
+                } else {
+                    panic!("No item placed at {}", loc_info.name);
+                }
             }
         }
     }

@@ -1,8 +1,10 @@
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Setting for handling Nice Items and Mother Maiamai Rewards
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Deserialize, Serialize)]
+#[pyclass]
 pub enum NiceItems {
     /// Nice Items are obtained as upgrades from Mother Maiamai as in the vanilla game.
     Vanilla,

@@ -328,6 +328,14 @@ where
     Instruction::Branch { cond: Default::default(), target_address: target_address.into(), link: true }
 }
 
+pub fn bx(register: Register) -> Instruction {
+    Instruction::Raw(0xe12fff10 | (register as u32))
+}
+
+pub fn blx(register: Register) -> Instruction {
+    Instruction::Raw(0xe12fff30 | (register as u32))
+}
+
 pub fn assemble<A, const N: usize>(start: A, instructions: [Instruction; N]) -> Box<[u8]>
 where
     A: Into<Address>,

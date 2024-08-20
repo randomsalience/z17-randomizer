@@ -1048,6 +1048,10 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                         normal: |p| (p.has_sword() || (p.swordless_mode() && p.can_attack())) && (p.has_bombs() || p.has_hammer() || p.has_tornado_rod()),
                         hard: |p| p.has_bombs() || p.has_hammer() || (p.has_tornado_rod() && p.can_attack()),
                     }),
+                    goal!("Clear Treacherous Tower", Goal::ClearTreacherousTower => {
+                        normal: |p| (p.has_sword() || (p.swordless_mode() && p.can_attack())) && (p.has_bombs() || p.has_hammer() || p.has_tornado_rod()),
+                        hard: |p| p.has_bombs() || p.has_hammer() || (p.has_tornado_rod() && p.can_attack()),
+                    }),
                     check!("[Mai] Lorule Mountain W Skull", regions::lorule::death::mountain::SUBREGION => {
                         normal: |p| p.can_destroy_skull(),
                         hard: |p| p.can_merge(),

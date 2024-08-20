@@ -1,8 +1,10 @@
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Crackanity
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Deserialize, Serialize)]
+#[pyclass]
 pub enum Cracksanity {
     /// Cracks are not shuffled
     #[default]

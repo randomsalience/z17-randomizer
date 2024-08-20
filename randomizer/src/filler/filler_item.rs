@@ -1,11 +1,14 @@
-use crate::filler::cracks::Crack;
+pub use crate::filler::cracks::Crack;
 use crate::hints::{hint_color::HintColor::*, hint_ghost_name};
 use crate::patch::lms::msbf::MsbfKey;
 use crate::Result;
 use game::ghosts::HintGhost;
+use pyo3::prelude::*;
 use rom::flag::Flag;
 use serde::{Serialize, Serializer};
+use std::collections::hash_map::DefaultHasher;
 use std::fmt::Debug;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Randomizable {
@@ -395,7 +398,50 @@ impl Serialize for Randomizable {
     }
 }
 
+#[derive (Clone)]
+#[pyclass]
+pub struct PyRandomizable {
+    pub randomizable: Randomizable,
+}
+
+#[pyfunction]
+pub fn new_item(item: Item) -> PyRandomizable {
+    PyRandomizable { randomizable: Randomizable::Item(item) }
+}
+
+#[pyfunction]
+pub fn new_goal(goal: Goal) -> PyRandomizable {
+    PyRandomizable { randomizable: Randomizable::Goal(goal) }
+}
+
+#[pyfunction]
+pub fn new_vane(vane: Vane) -> PyRandomizable {
+    PyRandomizable { randomizable: Randomizable::Vane(vane) }
+}
+
+#[pyfunction]
+pub fn new_crack(crack: Crack) -> PyRandomizable {
+    PyRandomizable { randomizable: Randomizable::Crack(crack) }
+}
+
+impl From<PyRandomizable> for Randomizable {
+    fn from(randomizable: PyRandomizable) -> Randomizable {
+        randomizable.randomizable
+    }
+}
+
+#[pymethods]
+impl PyRandomizable {
+    fn item_id(&self) -> Option<u16> {
+        match self.randomizable {
+            Randomizable::Item(item) => Some(item.to_game_item() as u16),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[pyclass]
 pub enum Item {
     Empty,
 
@@ -1297,6 +1343,7 @@ impl Serialize for Item {
 
 // Quest Items ---------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[pyclass]
 pub enum Goal {
     // Bosses -------
     Yuga,
@@ -1332,6 +1379,7 @@ pub enum Goal {
     AccessFairyFountain, // todo add to world graph
     AccessHyruleBlacksmith,
     AccessLoruleCastleField,
+    ClearTreacherousTower,
     LcBombTrial,
     LcTileTrial,
     LcLampTrial,
@@ -1373,6 +1421,7 @@ impl Goal {
             Self::AccessFairyFountain => "Fairy Fountain Access",
             Self::AccessHyruleBlacksmith => "Hyrule Blacksmith Access",
             Self::AccessLoruleCastleField => "Lorule Castle Field Access",
+            Self::ClearTreacherousTower => "Clear Treacherous Tower",
             Self::LcBombTrial => "Bomb Trial Complete",
             Self::LcTileTrial => "Tile Trial Complete",
             Self::LcLampTrial => "Lamp Trial Complete",
@@ -1410,6 +1459,7 @@ impl Serialize for Goal {
 
 /// Weather Vane Item
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[pyclass]
 pub enum Vane {
     BlacksmithWV,
     DarkPalaceWV,
@@ -1568,5 +1618,14 @@ impl Vane {
     }
     pub fn flag_value(self) -> u16 {
         self.flag().get_value()
+    }
+}
+
+#[pymethods]
+impl Vane {
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
     }
 }

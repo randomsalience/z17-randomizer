@@ -199,6 +199,10 @@ impl Flag {
         856: CRACK_SWAMP_PILLAR_LORULE,
         857: CRACK_KUS_DOMAIN,
         // ...
+        // Hopefully unused flags that we use for randomizer
+        861: NPC_HINOX,
+        862: ZELDA_BOW,
+        // ...
         920: WV_YOUR_HOUSE,
         921: WV_KAKARIKO_VILLAGE,
         922: WV_EASTERN_PALACE,

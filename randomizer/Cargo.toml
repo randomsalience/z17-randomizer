@@ -4,6 +4,7 @@ version = "0.4.0"
 authors = [
     "Kevin Marsolais <kevin@kevinmarsolais.co>",
     "Rick Fay <rickwithanh@gmail.com>",
+    "Caroline Madsen <randomsalience@gmail.com>",
 ]
 edition = "2021"
 license = "GPL-2.0-or-later"
@@ -21,7 +22,9 @@ macros = { workspace = true }
 modinfo = { workspace = true }
 queue = "0.3.2-final"
 path-absolutize = { workspace = true }
+pyo3 = { workspace = true }
 rand = { workspace = true }
+regex = "1.10.6"
 rom = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

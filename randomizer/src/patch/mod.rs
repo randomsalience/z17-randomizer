@@ -736,7 +736,7 @@ impl Patches {
             file.dump(&romfs)?;
         }
         let path = path.as_ref();
-        println!();
+        info!("");
         info!("Writing Patch Files to:         {}\\{:016X}", &path.absolutize()?.display(), self.game.id());
 
         match fs_extra::copy_items(&[moddir], path, &CopyOptions { overwrite: true, ..Default::default() })

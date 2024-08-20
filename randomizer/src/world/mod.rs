@@ -28,11 +28,27 @@ mod turtle;
 #[derive(Default, Debug, Serialize)]
 pub struct WorldGraph {
     graph: DashMap<Location, LocationNode>,
+    check_map: DashMap<String, Check>,
 }
 
 impl WorldGraph {
     fn new() -> Self {
-        Self { graph: Default::default() }
+        Self { graph: Default::default(), check_map: Default::default() }
+    }
+
+    fn compute_check_map(&mut self) {
+        self.check_map = Default::default();
+        for location_node in self.graph.values() {
+            if let Some(checks) = location_node.get_checks() {
+                for check in checks {
+                    self.check_map.insert(check.get_name().to_string(), check.clone());
+                }
+            }
+        }
+    }
+
+    pub fn get_check(&self, name: &str) -> Option<&Check> {
+        self.check_map.get(name)
     }
 }
 
@@ -74,6 +90,8 @@ pub fn build_world_graph(crack_map: &CrackMap) -> WorldGraph {
     world.extend(turtle::graph());
 
     world.extend(lorule_castle::graph(crack_map));
+
+    world.compute_check_map();
 
     world
 }

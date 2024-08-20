@@ -1,6 +1,7 @@
 use serde::Serialize;
+use strum::{Display, EnumString};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Eq, Hash, Serialize)]
 pub enum Location {
     // Hyrule -------------------
     HyruleBellTravel,

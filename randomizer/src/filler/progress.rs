@@ -104,12 +104,22 @@ impl<'s> Progress<'s> {
     }
 
     pub fn hearts(&self, amount: f32) -> bool {
+        // Heart containers and heart pieces are not progression items in Archipelago
+        if self.seed_info.is_archipelago() {
+            return true;
+        }
+
         let heart_containers = self.count(item_pools::get_heart_containers()) as f32;
         let heart_pieces = self.count(item_pools::get_heart_pieces()) as f32;
         3.0 + heart_containers + (0.25 * heart_pieces) >= amount
     }
 
     pub fn has_rupees(&self, amount: u16) -> bool {
+        // Rupees are not progression items in Archipelago, so instead require Treacherous Tower for easy farming
+        if self.seed_info.is_archipelago() {
+            return self.has(Goal::ClearTreacherousTower);
+        }
+
         let purples = self.count(item_pools::get_purple_rupee_pool());
         let silvers = self.count(item_pools::get_silver_rupee_pool());
         let golds = self.count(item_pools::get_gold_rupee_pool());
@@ -552,6 +562,11 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_eastern_compass(&self) -> bool {
+        // Compasses are not progression in Archipelago
+        if self.seed_info.is_archipelago() {
+            return true;
+        }
+        
         self.has(Item::EasternCompass)
     }
 
@@ -625,6 +640,11 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_ice_compass(&self) -> bool {
+        // Compasses are not progression in Archipelago
+        if self.seed_info.is_archipelago() {
+            return true;
+        }
+
         self.has(Item::IceCompass)
     }
 

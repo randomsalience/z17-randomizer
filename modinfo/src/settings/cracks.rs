@@ -1,8 +1,10 @@
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Cracks Open/Closed Settings
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Deserialize, Serialize)]
+#[pyclass]
 pub enum Cracks {
     /// All Cracks except the Hyrule Castle Crack (and its pair) remain closed until the Quake Item is found.
     #[default]

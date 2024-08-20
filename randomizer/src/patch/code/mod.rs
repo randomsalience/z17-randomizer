@@ -1,11 +1,11 @@
 use super::Patcher;
 use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
-use crate::patch::code::arm::data::{add, cmp, mov};
+use crate::patch::code::arm::data::{add, sub, cmp, mov};
 use crate::patch::code::arm::ls::{ldr, ldrb, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::Register::*;
-use crate::patch::code::arm::{b, bl, Instruction, LR, PC, SP};
+use crate::patch::code::arm::{b, bl, bx, blx, Instruction, LR, PC, SP};
 use crate::{patch::util::prize_flag, regions, Layout, Result, SeedInfo};
 use game::Item;
 use game::Item::*;
@@ -157,6 +157,12 @@ impl Ips {
 
 pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     let mut code = Code::new(patcher.game.exheader());
+    
+    // This must be called first so the Archipelago header goes in the correct location
+    if let Some(info) = &seed_info.archipelago_info {
+        patch_archipelago(&mut code, seed_info.seed, &info.name);
+    }
+    
     let actor_names = actor_names(&mut code);
     let item_names = item_names(&mut code);
 
@@ -295,12 +301,12 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code.patch(0x1D6DBC, [ldr(R1, (R4, 0x2E)), mov(R0, R0)]);
 
     // Premium Milk
-    if seed_info.layout.find_single(LetterInABottle).is_none() {
+    if seed_info.is_archipelago() || seed_info.layout.find_single(LetterInABottle).is_none() {
         // This code makes the Premium Milk work correctly when picked up without having first picked up the Letter.
         // This patch is only applied when the Milk is shuffled in the rando instead of the Letter.
         // If it's desired to have both shuffled at once then this code needs to be re-written.
 
-        code.patch(0x3455B8, [b(0x345578)]); // Repurpose Letter In a Bottle code
+        code.patch(0x3455C0, [bl(0x2558DC)]); // Repurpose Letter In a Bottle code
         code.patch(0x255930, [mov(R0, 0xD)]); // Give Milk instead of Letter
     }
     code.patch(0x345588, [b(0x34559C)]); // Skip setting Flag 916
@@ -336,6 +342,124 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code.patch(0x344dec, [b(great_spin_fix)]);
 
     code
+}
+
+fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
+    let archipelago_header = code.rodata().declare([0x41, 0x52, 0x43, 0x48]); // magic number
+    code.rodata().declare([0, 0, 0, 0]); // data version
+    code.rodata().declare(seed.to_le_bytes()); // seed
+    code.rodata().declare([0xff, 0xff, 0xff, 0xff]); // placeholder for received item
+    code.rodata().declare(name.as_bytes()); // username padded to 0x40 bytes
+    for _ in 0..(0x40 - name.as_bytes().len()) {
+        code.rodata().declare([0]);
+    }
+
+    // Save Archipelago information
+    let patch_create_save = code.text().define([
+        ldr(R0, archipelago_header),
+        ldr(R0, (R0, 0x0)),
+        str_(R0, (R5, 0xde0)), // magic number
+        ldr(R0, archipelago_header),
+        ldr(R0, (R0, 0x4)),
+        str_(R0, (R5, 0xde4)), // data version
+        ldr(R0, archipelago_header),
+        ldr(R0, (R0, 0x8)),
+        str_(R0, (R5, 0xde8)), // seed
+        mov(R0, 0x0),
+        str_(R0, (R5, 0xdec)), // received items count
+        mov(R0, R5),
+        b(0x1df5b0),
+    ]);
+    code.patch(0x1df5ac, [b(patch_create_save)]);
+
+    // Receive items from the server
+    let receive_items_timer = code.rodata().declare([0, 0, 0, 0]);
+    let receive_items_skip = code.text().define([
+        pop(&[R0, R1, R4, R5, R6, LR]),
+        b(0x349214),
+    ]);
+    let receive_items = code.text().define([
+        // Return to normal function if player state is not 0 (standing) or 1 (walking)
+        push(&[R0, R1, R4, R5, R6, LR]),
+        cmp(R1, 0x0),
+        cmp(R1, 0x1).ne(),
+        b(receive_items_skip).ne(),
+        // Return to normal function if received item is -1
+        ldr(R4, archipelago_header),
+        ldr(R4, (R4, 0xc)),
+        add(R5, R4, 0x1),
+        cmp(R5, 0x0),
+        b(receive_items_skip).eq(),
+        // Return to normal function if timer is still going
+        ldr(R6, receive_items_timer),
+        ldr(R5, (R6, 0x0)),
+        cmp(R5, 0x0),
+        sub(R5, R5, 0x1).ne(),
+        str_(R5, (R6, 0x0)),
+        b(receive_items_skip).ne(),
+        // Call get item routine
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0x0)),
+        mov(R1, R4),
+        mov(R2, 0x0),
+        bl(0x36174c),
+        // Return to normal function if item get failed
+        cmp(R0, 0x0),
+        b(receive_items_skip).eq(),
+        // Increment received items counter
+        ldr(R4, SAVE_MANAGER),
+        ldr(R4, (R4, 0x0)),
+        ldr(R4, (R4, 0x14)),
+        ldr(R5, (R4, 0xdec)),
+        add(R5, R5, 0x1),
+        str_(R5, (R4, 0xdec)),
+        // Set received item to -1
+        ldr(R4, archipelago_header),
+        ldr(R5, -0x1),
+        str_(R5, (R4, 0xc)),
+        pop(&[R0, R1, R4, R5, R6, LR]),
+        bx(LR),
+    ]);
+    code.addr(0x6e30ac, receive_items);
+
+    // Allow getting items outside of an event
+    let get_item_patch = code.text().define([
+        push(&[R4, R5, R6]),
+        ldr(R4, EVENT_FLAG_PTR),
+        ldr(R4, (R4, 0)),
+        ldr(R5, (R4, 0x10)),
+        mov(R6, 0x1),
+        str_(R6, (R4, 0x10)),
+        blx(R2),
+        str_(R5, (R4, 0x10)),
+        pop(&[R4, R5, R6]),
+        b(0x2922fc),
+    ]);
+    code.patch(0x2922f8, [b(get_item_patch)]);
+
+    // Prevent getting item during stamina scroll animation
+    let fix_get_stamina_scroll = code.text().define([
+        cmp(R0, 0x45),
+        b(0x344834).ne(),
+        mov(R0, 0xf0),
+        ldr(R1, receive_items_timer),
+        str_(R0, (R1, 0x0)),
+        mov(R0, 0x1),
+        bx(LR),
+    ]);
+    code.patch(0x028edf0, [bl(fix_get_stamina_scroll)]);
+
+    // Repurpose Letter in a Bottle as Archipelago Item
+    code.patch(0x345578, [b(0x344f00)]);
+    code.addr(0x3447c4, 0x34482c);
+
+    // Allow Ravio items to have arbitrary names
+    let change_ravio_text = code.text().define([
+        ldr(R1, 0x714694),
+        ldr(R0, (R1, R0, 2)),
+        bx(LR),
+    ]);
+    code.patch(0x55af28, [b(change_ravio_text)]);
 }
 
 #[allow(unused_variables)]
@@ -417,7 +541,7 @@ fn quake(code: &mut Code) {
 
 /// Mother Maiamai Stuff
 fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u32>) {
-    /// Use flags 302-311 (not 305) to record whether we've picked up that item's upgrade.
+    /// Use event flags 863-872 (not 866) to record whether we've picked up that item's upgrade.
     /// The "inventory index" (see table: 0x6a6170) of each item gets added to this:
     /// * 0x4 = Bow
     /// * 0x3 = Boomerang
@@ -428,36 +552,36 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
     /// * 0x9 = Ice Rod
     /// * 0xA = Tornado Rod
     /// * 0x7 = Sand Rod
-    const NEW_LOCAL_FLAGS_START_IDX: u32 = 300;
+    const NEW_EVENT_FLAGS_START_IDX: u32 = 861;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Great Spin final Nice Item check (?)
     // Accept Nice Items in addition to their regular counterparts for the check to see if we own anything upgradable.
     // code.patch(0x30fdcc, [b(0x30fef0).ge()]);
-    let fn_get_maiamai_flag3 = code.text().define([
-        add(R1, R4, NEW_LOCAL_FLAGS_START_IDX),
-        ldr(R0, MAP_MANAGER_INSTANCE),
+    let fn_get_maiamai_flag = code.text().define([
+        ldr(R1, NEW_EVENT_FLAGS_START_IDX),
+        add(R1, R1, R4),
+        ldr(R0, EVENT_FLAG_PTR),
         ldr(R0, (R0, 0x0)),
-        ldr(R0, (R0, 0x40)),
-        bl(FN_GET_LOCAL_FLAG_3),
+        bl(FN_GET_EVENT_FLAG),
         b(0x30fdc4),
     ]);
-    code.patch(0x30fdb8, [b(fn_get_maiamai_flag3)]);
+    code.patch(0x30fdb8, [b(fn_get_maiamai_flag)]);
     code.patch(0x30fdc4, [cmp(R0, 0x0)]);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Rewrite ::::caseD_6 to check local flags for (I think?) 100 Maiamai item giveout
-    let thing = code.text().define([
-        add(R1, R4, NEW_LOCAL_FLAGS_START_IDX),
-        ldr(R0, MAP_MANAGER_INSTANCE),
+    // Rewrite ::::caseD_6 to check event flags for (I think?) 100 Maiamai item giveout
+    let fn_get_maiamai_flag = code.text().define([
+        ldr(R1, NEW_EVENT_FLAGS_START_IDX),
+        add(R1, R1, R4),
+        ldr(R0, EVENT_FLAG_PTR),
         ldr(R0, (R0, 0x0)),
-        ldr(R0, (R0, 0x40)),
-        bl(FN_GET_LOCAL_FLAG_3),
+        bl(FN_GET_EVENT_FLAG),
         b(0x30fee4),
     ]);
-    code.patch(0x30fed8, [b(thing)]);
+    code.patch(0x30fed8, [b(fn_get_maiamai_flag)]);
     code.patch(0x30fee4, [cmp(R0, 0x1)]);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -471,15 +595,15 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
      * For randomizer, we need to replace `num_nice_items_obtained` with a count of our current flags that have been set.
      */
     code.patch(0x30fdf8, [b(0x30fe0c)]); // Skip Great Spin item check
-    let fn_get_maiamai_flag3 = code.text().define([
-        add(R1, R4, NEW_LOCAL_FLAGS_START_IDX),
-        ldr(R0, MAP_MANAGER_INSTANCE),
+    let fn_get_maiamai_flag = code.text().define([
+        ldr(R1, NEW_EVENT_FLAGS_START_IDX),
+        add(R1, R1, R4),
+        ldr(R0, EVENT_FLAG_PTR),
         ldr(R0, (R0, 0x0)),
-        ldr(R0, (R0, 0x40)),
-        bl(FN_GET_LOCAL_FLAG_3),
+        bl(FN_GET_EVENT_FLAG),
         b(0x30fe48),
     ]);
-    code.patch(0x30fe3c, [b(fn_get_maiamai_flag3)]);
+    code.patch(0x30fe3c, [b(fn_get_maiamai_flag)]);
     code.patch(0x30fe48, [cmp(R0, 0x1)]);
     code.patch(0x30fe4c, [add(R5, R5, 0x1).eq()]);
 
@@ -490,18 +614,18 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Check our newly created local flags to determine if items can appear on MM's list of items to upgrade
-    let fn_get_maiamai_flag3 = code.text().define([
-        add(R1, R1, NEW_LOCAL_FLAGS_START_IDX),
-        ldr(R0, MAP_MANAGER_INSTANCE),
+    // Check our newly created event flags to determine if items can appear on MM's list of items to upgrade
+    let fn_get_maiamai_flag = code.text().define([
+        ldr(R2, NEW_EVENT_FLAGS_START_IDX),
+        add(R1, R2, R1),
+        ldr(R0, EVENT_FLAG_PTR),
         ldr(R0, (R0, 0x0)),
-        ldr(R0, (R0, 0x40)),
-        bl(FN_GET_LOCAL_FLAG_3),
+        bl(FN_GET_EVENT_FLAG),
         cmp(R0, 0x0),
         b(0x46d848).eq(),
         b(0x46d888),
     ]);
-    code.patch(0x46d840, [b(fn_get_maiamai_flag3).ge()]);
+    code.patch(0x46d840, [b(fn_get_maiamai_flag).ge()]);
     code.patch(0x46d844, [b(0x46d888)]);
 
     // Allow getting upgrades if you already have the Nice Item for this slot
@@ -525,7 +649,7 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Record upgrades received with a new course flag for each one.
+    // Record upgrades received with a new event flag for each one.
     let bow = layout.get_unsafe("Maiamai Bow Upgrade", regions::hyrule::lake::cave::SUBREGION);
     let boomerang = layout.get_unsafe("Maiamai Boomerang Upgrade", regions::hyrule::lake::cave::SUBREGION);
     let hookshot = layout.get_unsafe("Maiamai Hookshot Upgrade", regions::hyrule::lake::cave::SUBREGION);
@@ -537,27 +661,26 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
     let sand_rod = layout.get_unsafe("Maiamai Sand Rod Upgrade", regions::hyrule::lake::cave::SUBREGION);
 
     for (offset, addr, item) in [
-        (304, 0x3100f8, bow),
-        (303, 0x3100f0, boomerang),
-        (311, 0x310128, hookshot),
-        (306, 0x310100, hammer),
-        (302, 0x310130, bombs),
-        (308, 0x310110, fire_rod),
-        (309, 0x310118, ice_rod),
-        (310, 0x310120, tornado_rod),
-        (307, 0x310108, sand_rod),
+        (4, 0x3100f8, bow),
+        (3, 0x3100f0, boomerang),
+        (11, 0x310128, hookshot),
+        (6, 0x310100, hammer),
+        (2, 0x310130, bombs),
+        (8, 0x310110, fire_rod),
+        (9, 0x310118, ice_rod),
+        (10, 0x310120, tornado_rod),
+        (7, 0x310108, sand_rod),
     ] {
-        let fn_set_local3_flag_for_this_upgrade = code.text().define([
-            ldr(R0, MAP_MANAGER_INSTANCE),
+        let fn_set_event_flag_for_this_upgrade = code.text().define([
+            ldr(R0, EVENT_FLAG_PTR),
             ldr(R0, (R0, 0x0)),
-            ldr(R0, (R0, 0x40)),
-            ldr(R1, offset),
+            ldr(R1, offset + NEW_EVENT_FLAGS_START_IDX),
             mov(R2, 0x1),
-            bl(FN_SET_LOCAL_FLAG_3),
+            bl(FN_SET_EVENT_FLAG),
             mov(R0, item.as_item_index()),
             b(0x310134),
         ]);
-        code.patch(addr, [b(fn_set_local3_flag_for_this_upgrade)]);
+        code.patch(addr, [b(fn_set_event_flag_for_this_upgrade)]);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -815,6 +938,8 @@ fn progressive_items(code: &mut Code) {
             ldr(R3, (R0, 0x434)),
             cmp(R3, 0),
             mov(R3, 1).eq(),
+            cmp(R3, 5),
+            mov(R3, 4).eq(),
             add(R5, R3, 0x1A),
             b(return_label)
         ]);
@@ -872,11 +997,8 @@ fn progressive_items(code: &mut Code) {
         b(progressive_lamp).ne(),
         ldr(R0, (R0, 0x444)),
         cmp(R0, 0),
-        mov(R5, 0x11).eq(), // Bow
-        b(return_label).eq(),
-        cmp(R0, 2),
-        mov(R5, 0x55).eq(), // Nice Bow
-        mov(R5, 0x5C).ne(), // Bow of Light
+        mov(R5, 0x11).eq(),
+        mov(R5, 0x55).ne(),
         b(return_label),
     ]);
     let progressive_boomerang = code.text().define([
@@ -969,8 +1091,28 @@ fn progressive_items(code: &mut Code) {
         mov(R5, 0x19).ne(),
         b(return_label),
     ]);
+    let progressive_ore = code.text().define([
+        cmp(R5, 0x42),
+        cmp(R5, 0x43).ne(),
+        cmp(R5, 0x44).ne(),
+        cmp(R5, 0x48).ne(),
+        b(progressive_charm).ne(),
+        ldr(R3, (R0, 0x4D8)),
+        cmp(R3, 0),
+        mov(R5, 0x42).eq(),
+        b(return_label).eq(),
+        ldr(R3, (R0, 0x4D4)),
+        cmp(R3, 0),
+        mov(R5, 0x43).eq(),
+        b(return_label).eq(),
+        ldr(R3, (R0, 0x4E0)),
+        cmp(R3, 0),
+        mov(R5, 0x44).eq(),
+        mov(R5, 0x48).ne(),
+        b(return_label),
+    ]);
 
-    code.patch(0x2922A0, [b(progressive_charm)]);
+    code.patch(0x2922A0, [b(progressive_ore)]);
 }
 
 fn bracelet(code: &mut Code, settings: &Settings) {
@@ -1237,14 +1379,15 @@ const FN_SET_EVENT_FLAG: u32 = 0x4CDF40;
 
 /// r0: PlayerObjectSingleton <br />
 /// r1: flag index
-const FN_GET_LOCAL_FLAG_3: u32 = 0x52a05c;
+// const FN_GET_LOCAL_FLAG_3: u32 = 0x52a05c;
 
 /// r0: PlayerObjectSingleton <br />
 /// r1: flag index <br />
 /// r2: new flag value (0 or 1)
-const FN_SET_LOCAL_FLAG_3: u32 = 0x1bb724;
+// const FN_SET_LOCAL_FLAG_3: u32 = 0x1bb724;
 
-const MAP_MANAGER_INSTANCE: u32 = 0x70c8e0;
+// const MAP_MANAGER_INSTANCE: u32 = 0x70c8e0;
 // const PTR_MAP_MANAGER_INSTANCE: u32 = 0x27320c;
 const PLAYER_OBJECT_SINGLETON: u32 = 0x70FB60;
+const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;

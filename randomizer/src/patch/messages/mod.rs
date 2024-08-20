@@ -1,11 +1,11 @@
 use crate::filler::filler_item::Item::{
     PendantOfCourage, PendantOfPower, PendantOfWisdom, SageGulley, SageImpa, SageIrene, SageOren, SageOsfala,
-    SageRosso, SageSeres,
+    SageRosso, SageSeres, LetterInABottle,
 };
 use crate::{
     hints::{formatting::*, Hint},
     patch::messages::{hint_ghosts::HintGhost, msbt::load_msbt},
-    regions, DashMap, Patcher, Result, SeedInfo,
+    regions, DashMap, Patcher, Randomizable, Result, SeedInfo,
 };
 use game::Course::{self, *};
 use log::info;
@@ -21,8 +21,8 @@ pub fn patch_messages(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()>
     // patch_flavor_text(patcher, seed_info)?; // FIXME breaks Maiamai Map
     patch_file_select(patcher, seed_info)?;
     // patch_pause_screen(patcher)?; TODO
-    patch_item_names(patcher)?;
-    patch_event_item_get(patcher)?;
+    patch_item_names(patcher, seed_info)?;
+    patch_event_item_get(patcher, seed_info.is_archipelago())?;
     patch_collect(patcher, seed_info)?;
     patch_actions(patcher)?;
     patch_ravio(patcher, seed_info)?;
@@ -84,7 +84,7 @@ fn patch_pause_screen(patcher: &mut Patcher) -> Result<()> {
 }
 
 /// Item Names
-fn patch_item_names(patcher: &mut Patcher) -> Result<()> {
+fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     // Item names in textboxes
     let mut item_name = load_msbt(patcher, LanguageBoot, "ItemName")?;
 
@@ -99,6 +99,22 @@ fn patch_item_names(patcher: &mut Patcher) -> Result<()> {
 
     // Quake - Repurpose
     item_name.set("item_name_gamecoin", "Quake");
+
+    if let Some(info) = &seed_info.archipelago_info {
+        // Repurpose Letter in a Bottle as Archipelago Item
+        item_name.set("item_name_messagebottle", "Archipelago Item");
+
+        // Ravio items
+        item_name.set("item_name_icerod_LV2", &info.get_item_name("Ravio's Shop (1)")?);
+        item_name.set("item_name_hookshot_LV2", &info.get_item_name("Ravio's Shop (2)")?);
+        item_name.set("item_name_tornaderod_LV2", &info.get_item_name("Ravio's Shop (3)")?);
+        item_name.set("item_name_bomb_LV2", &info.get_item_name("Ravio's Shop (4)")?);
+        item_name.set("item_name_bow_LV2", &info.get_item_name("Ravio's Shop (5)")?);
+        item_name.set("item_name_sandrod_LV2", &info.get_item_name("Ravio's Shop (6)")?);
+        item_name.set("item_name_hammer_LV2", &info.get_item_name("Ravio's Shop (7)")?);
+        item_name.set("item_name_boomerang_LV2", &info.get_item_name("Ravio's Shop (8)")?);
+        item_name.set("item_name_firerod_LV2", &info.get_item_name("Ravio's Shop (9)")?);
+    }
 
     patcher.update(item_name.dump())?;
 
@@ -116,7 +132,7 @@ fn patch_item_names(patcher: &mut Patcher) -> Result<()> {
 }
 
 /// Item Descriptions
-fn patch_event_item_get(patcher: &mut Patcher) -> Result<()> {
+fn patch_event_item_get(patcher: &mut Patcher, archipelago: bool) -> Result<()> {
     let mut msbt = load_msbt(patcher, LanguageBoot, "EventItemGet")?;
 
     msbt.set("none", "A quake shakes the kingdom!"); // ehh
@@ -133,6 +149,10 @@ fn patch_event_item_get(patcher: &mut Patcher) -> Result<()> {
 
     msbt.set("kandelaar", "You got the lamp!");
     msbt.set("zelda_amulet", "You got a special charm!"); // Cut " from Princess Zelda"
+
+    if archipelago {
+        msbt.set("message_bottle", "You got an Archipelago item!")
+    }
 
     patcher.update(msbt.dump())?;
 
@@ -288,22 +308,37 @@ fn patch_cross_old_man(patcher: &mut Patcher) -> Result<()> {
 
 /// Street Merchant - Shorten text & show the item names
 fn patch_street_merchant(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
-    let item_left =
-        seed_info.layout.get_unsafe("Street Merchant (Left)", regions::hyrule::kakariko::village::SUBREGION).as_str();
-    let item_right =
-        seed_info.layout.get_unsafe("Street Merchant (Right)", regions::hyrule::kakariko::village::SUBREGION).as_str();
+    let item_left = seed_info.layout.get_unsafe("Street Merchant (Left)", regions::hyrule::kakariko::village::SUBREGION);
+    let item_name_left = if let Some(info) = &seed_info.archipelago_info {
+        match item_left {
+            Randomizable::Item(LetterInABottle) => info.get_item_name("Street Merchant (Left)")?,
+            _ => item_left.as_str().to_string(),
+        }
+    } else {
+        item_left.as_str().to_string()
+    };
+
+    let item_right = seed_info.layout.get_unsafe("Street Merchant (Right)", regions::hyrule::kakariko::village::SUBREGION);
+    let item_name_right = if let Some(info) = &seed_info.archipelago_info {
+        match item_right {
+            Randomizable::Item(LetterInABottle) => info.get_item_name("Street Merchant (Right)")?,
+            _ => item_right.as_str().to_string(),
+        }
+    } else {
+        item_right.as_str().to_string()
+    };
 
     let mut street_merchant = load_msbt(patcher, FieldLight, "FieldLight_18")?;
     street_merchant.set(
         "lgt_NpcStand_BottleEmpty_00_select",
-        &format!("That's a {}.\nUseful for a bunch of things.\nHow about {}?{}", name(item_left), *PRICE, *CHOICE_2),
+        &format!("That's a {}.\nUseful for a bunch of things.\nHow about {}?{}", name(&item_name_left), *PRICE, *CHOICE_2),
     );
 
     street_merchant.set(
         "lgt_NpcStand_ZoraTreasure_00_select",
         &format!(
             "Ah, yes! A {}\nof remarkable quality. Smooth as silk!\nAnd for you? Only {}!{}",
-            name(item_right),
+            name(&item_name_right),
             *PRICE,
             *CHOICE_2
         ),
@@ -312,7 +347,7 @@ fn patch_street_merchant(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<
         "lgt_NpcStand_ZoraTreasure_01",
         &format!(
             "Sorry to see it go, actually. I just\ncouldn't stop touching that\nsmooth, smooth {}.",
-            name(item_right)
+            name(&item_name_right)
         ),
     );
 

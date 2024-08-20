@@ -4,6 +4,7 @@ use game::Course;
 use log::info;
 use modinfo::settings::keysy::Keysy;
 use modinfo::Settings;
+use rom::flag::Flag;
 use rom::string_constants;
 
 pub fn patch(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
@@ -455,7 +456,11 @@ fn patch_final_boss(patcher: &mut Patcher) -> Result<()> {
     apply!(patcher,
         DungeonBoss/Ganon {
             [69] => 72, // Skip 1st Zelda text
-            [90] => 91, // Skip 2nd Zelda text
+            [70 convert_into_action] each [ // Skip 2nd Zelda text and set an event flag
+                = 0xE,
+                arg1(6),
+                value(Flag::ZELDA_BOW.get_value().into()),
+            ],
         },
     );
 
@@ -1087,6 +1092,10 @@ pub fn legacy_patches(patcher: &mut Patcher) -> Result<()> {
             [0xA] => 0x11,
             [0x11] => 0x16,
             [0x25] => 0x37,
+            [0x26] each [
+                = 0xE, // Change to event flag
+                value(Flag::NPC_HINOX.get_value().into()),
+            ],
         },
     );
     Ok(())

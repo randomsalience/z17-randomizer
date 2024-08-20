@@ -56,6 +56,7 @@ fn main() {
         seed,
         version: String::from(VERSION),
         hash: SeedHash::new(seed, &settings),
+        archipelago_info: None,
         settings,
         full_exclusions: Default::default(),
         treacherous_tower_floors: vec![],

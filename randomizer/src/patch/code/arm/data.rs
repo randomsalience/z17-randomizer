@@ -54,6 +54,13 @@ where
     instruction(operand2.into().code(), 0b0100, false, rn, rd)
 }
 
+pub fn sub<O>(rd: Register, rn: Register, operand2: O) -> Instruction
+where
+    O: Into<ShifterOperand>,
+{
+    instruction(operand2.into().code(), 0b0010, false, rn, rd)
+}
+
 pub fn cmp<O>(rn: Register, operand2: O) -> Instruction
 where
     O: Into<ShifterOperand>,

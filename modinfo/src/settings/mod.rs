@@ -9,6 +9,7 @@ pub use crate::settings::trials_door::TrialsDoor;
 pub use crate::settings::weather_vanes::WeatherVanes;
 use log::info;
 use logic::LogicMode::*;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::btree_set::BTreeSet;
 use std::hash::Hash;
@@ -26,143 +27,187 @@ pub mod weather_vanes;
 /// Logic and behavior settings.
 #[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
 #[serde(default, deny_unknown_fields)]
+#[pyclass]
 pub struct Settings {
     #[serde(skip_serializing_if = "is_false")]
+    #[pyo3(get, set)]
     pub dev_mode: bool,
 
     /// The number of Portraits needed to trigger the Hilda cutscene to open Lorule Castle
     #[serde(default = "seven")]
+    #[pyo3(get, set)]
     pub lc_requirement: u8,
 
     /// The number of Portraits needed to fight Yuga Ganon
     #[serde(default = "seven", skip_serializing)]
+    #[pyo3(get, set)]
     pub yuganon_requirement: u8,
 
     /// Configure which Pendants are required to reach the Master Sword Pedestal
     #[serde(default)]
+    #[pyo3(get, set)]
     pub ped_requirement: PedestalSetting,
 
     /// Logic to use for item placement (Normal, Hard, Glitched, Adv. Glitched, Hell, No Logic)
     #[serde(default)]
+    #[pyo3(get, set)]
     pub logic_mode: LogicMode,
 
     /// Dark Room Lamp Requirement. If enabled, the player may have to cross dark rooms without Lamp
     #[serde(default)]
+    #[pyo3(get, set)]
     pub dark_rooms_lampless: bool,
 
     /// Randomizes the Pendants and Portraits between Hyrule and Lorule dungeons
     #[serde(default = "r#true")]
+    #[pyo3(get, set)]
     pub dungeon_prize_shuffle: bool,
 
     /// Maiamai Limit
     #[serde(default = "fifty")]
+    #[pyo3(get, set)]
     pub maiamai_limit: usize,
 
     /// Maiamai Madness
     #[serde(default)]
+    #[pyo3(get, set)]
     pub maiamai_madness: bool,
 
     /// Nice Items
     #[serde(default)]
+    #[pyo3(get, set)]
     pub nice_items: NiceItems,
 
     /// Shuffle Super Lamp and Super Net
     #[serde(default)]
+    #[pyo3(get, set)]
     pub super_items: bool,
 
     /// Lamp & Net as Weapons
     #[serde(default)]
+    #[pyo3(get, set)]
     pub lamp_and_net_as_weapons: bool,
 
     /// Cracks Open/Closed Setting
+    #[pyo3(get, set)]
     pub cracks: Cracks,
 
     /// Shuffles the crack destinations amongst each other
     #[serde(default)]
+    #[pyo3(get, set)]
     pub cracksanity: Cracksanity,
 
     /// Weather Vanes behavior and activation setting.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub weather_vanes: WeatherVanes,
 
     /// Ravio's Shop
     #[serde(default, skip_deserializing, skip_serializing_if = "ravios_shop_open")]
+    #[pyo3(get, set)]
     pub ravios_shop: RaviosShop,
 
     /// Guarantees Bow of Light will be placed in Lorule Castle
     #[serde(default)]
+    #[pyo3(get, set)]
     pub bow_of_light_in_castle: bool,
 
     /// Removes Enemies from dungeons that are themselves Progression (e.g.: Bawbs, the bomb enemy).
     /// Logic will be adjusted to require the player's items instead.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub no_progression_enemies: bool,
 
     /// Keysy
     #[serde(default)]
+    #[pyo3(get, set)]
     pub keysy: Keysy,
 
     /// Makes the Bow of Light the third upgrade for the Bow
     #[serde(default, skip_serializing_if = "is_false")]
+    #[pyo3(get, set)]
     pub progressive_bow_of_light: bool,
 
     /// Swordless Mode
     /// Not available if [`sword_in_shop`] option is enabled.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub swordless_mode: bool,
 
     /// Start with the ability to Merge into walls, without Ravio's Bracelet.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub start_with_merge: bool,
 
     /// Start with a usable X button
     #[serde(default)]
+    #[pyo3(get, set)]
     pub start_with_pouch: bool,
 
     /// Places the Bell in Ravio's Shop
     #[serde(default)]
+    #[pyo3(get, set)]
     pub bell_in_shop: bool,
 
     /// Places a Sword in Ravio's Shop. Disables the ability to play in Swordless Mode.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub sword_in_shop: bool,
 
     /// Places the Pegasus Boots in Ravio's Shop
     #[serde(default)]
+    #[pyo3(get, set)]
     pub boots_in_shop: bool,
 
     /// Guarantees a Weapon is placed in Ravio's Shop.
     /// Not available if [`boots_in_shop`] or [`sword_in_shop`] are enabled as they already are weapons.
     #[serde(default)]
+    #[pyo3(get, set)]
     pub assured_weapon: bool,
 
     /// Alters treasure chest sizes depending on their contents: Large for Progression items, Small for everything else.
+    #[pyo3(get, set)]
     pub chest_size_matches_contents: bool,
 
     /// Excludes Cucco Ranch, both Rupee Rushes, Treacherous Tower, Octoball Derby, and Hyrule Hotfoot (both races)
     #[serde(default)]
+    #[pyo3(get, set)]
     pub minigames_excluded: bool,
 
     /// Skips the Big Bomb Flower by removing the 5 Big Rocks in Lorule Field (Does not affect Lorule Castle Bomb Trial)
     #[serde(default)]
+    #[pyo3(get, set)]
     pub skip_big_bomb_flower: bool,
 
     /// Trials Door setting
     #[serde(default)]
+    #[pyo3(get, set)]
     pub trials_door: TrialsDoor,
 
     /// Number of floors in Treacherous Tower
     #[serde(default = "five")]
+    #[pyo3(get, set)]
     pub treacherous_tower_floors: usize,
 
     /// Purple Potion Bottles
+    #[pyo3(get, set)]
     pub purple_potion_bottles: bool,
 
     /// Experimental: Change Hyrule to the nighttime color scheme (until visiting Lorule)
+    #[pyo3(get, set)]
     pub night_mode: bool,
 
     /// Set of user-provided locations to be excluded from having progression.
+    #[pyo3(get, set)]
     pub user_exclusions: BTreeSet<String>,
+}
+
+#[pymethods]
+impl Settings {
+    #[new]
+    pub fn new() -> Settings {
+        Settings::default()
+    }
 }
 
 impl Settings {

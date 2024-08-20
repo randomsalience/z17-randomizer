@@ -1,8 +1,10 @@
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Trial's Door
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
+#[pyclass]
 pub enum TrialsDoor {
     /// The Trials Door will open by itself automatically, from inside LC only.
     OpenFromInsideOnly,
