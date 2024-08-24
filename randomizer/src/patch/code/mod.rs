@@ -346,13 +346,13 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 
 fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     let archipelago_header = code.rodata().declare([0x41, 0x52, 0x43, 0x48]); // magic number
-    code.rodata().declare([0, 0, 0, 0]); // data version
+    code.rodata().declare([1, 0, 0, 0]); // data version
     code.rodata().declare(seed.to_le_bytes()); // seed
     code.rodata().declare([0xff, 0xff, 0xff, 0xff]); // placeholder for received item
-    code.rodata().declare(name.as_bytes()); // username padded to 0x40 bytes
-    for _ in 0..(0x40 - name.as_bytes().len()) {
-        code.rodata().declare([0]);
-    }
+    let mut name_bytes = name.as_bytes().to_vec();
+    name_bytes.resize(0x40, 0);
+    code.rodata().declare(name_bytes); // username padded to 0x40 bytes
+    let received_items_counter = code.rodata().declare([0xff, 0xff, 0xff, 0xff]);
 
     // Save Archipelago information
     let patch_create_save = code.text().define([
@@ -407,12 +407,10 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         cmp(R0, 0x0),
         b(receive_items_skip).eq(),
         // Increment received items counter
-        ldr(R4, SAVE_MANAGER),
-        ldr(R4, (R4, 0x0)),
-        ldr(R4, (R4, 0x14)),
-        ldr(R5, (R4, 0xdec)),
-        add(R5, R5, 0x1),
-        str_(R5, (R4, 0xdec)),
+        ldr(R4, received_items_counter),
+        ldr(R5, (R4, 0)),
+        add(R5, R5, 1),
+        str_(R5, (R4, 0)),
         // Set received item to -1
         ldr(R4, archipelago_header),
         ldr(R5, -0x1),
@@ -421,6 +419,28 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         bx(LR),
     ]);
     code.addr(0x6e30ac, receive_items);
+
+    // Save the received items counter when saving the game
+    let save_received_items_counter = code.text().define([
+        ldr(R1, received_items_counter),
+        ldr(R1, (R1, 0)),
+        str_(R1, (R0, 0xdec)),
+        b(0x320b74),
+    ]);
+    code.patch(0x4c3d60, [bl(save_received_items_counter)]);
+
+    // Load the received items counter when loading the game
+    let load_received_items_counter = code.text().define([
+        ldr(R1, received_items_counter),
+        ldr(R0, (R4, 0x14)),
+        ldr(R0, (R0, 0xdec)),
+        str_(R0, (R1, 0)),
+        ldr(R1, archipelago_header),
+        ldr(R0, -1),
+        str_(R0, (R1, 0xc)),
+        b(0x4ad758),
+    ]);
+    code.patch(0x4c3b68, [bl(load_received_items_counter)]);
 
     // Allow getting items outside of an event
     let get_item_patch = code.text().define([
@@ -1389,5 +1409,5 @@ const FN_SET_EVENT_FLAG: u32 = 0x4CDF40;
 // const MAP_MANAGER_INSTANCE: u32 = 0x70c8e0;
 // const PTR_MAP_MANAGER_INSTANCE: u32 = 0x27320c;
 const PLAYER_OBJECT_SINGLETON: u32 = 0x70FB60;
-const SAVE_MANAGER: u32 = 0x711de8;
+// const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;
