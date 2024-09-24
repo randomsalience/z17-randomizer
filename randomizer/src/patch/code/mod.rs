@@ -432,12 +432,12 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     // Load the received items counter when loading the game
     let load_received_items_counter = code.text().define([
         ldr(R1, received_items_counter),
-        ldr(R0, (R4, 0x14)),
-        ldr(R0, (R0, 0xdec)),
-        str_(R0, (R1, 0)),
+        ldr(R2, (R4, 0x14)),
+        ldr(R2, (R2, 0xdec)),
+        str_(R2, (R1, 0)),
         ldr(R1, archipelago_header),
-        ldr(R0, -1),
-        str_(R0, (R1, 0xc)),
+        ldr(R2, -1),
+        str_(R2, (R1, 0xc)),
         b(0x4ad758),
     ]);
     code.patch(0x4c3b68, [bl(load_received_items_counter)]);
