@@ -435,9 +435,14 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         ldr(R2, (R4, 0x14)),
         ldr(R2, (R2, 0xdec)),
         str_(R2, (R1, 0)),
+        // Clear received item
         ldr(R1, archipelago_header),
         ldr(R2, -1),
         str_(R2, (R1, 0xc)),
+        // Set received item timer
+        ldr(R1, receive_items_timer),
+        mov(R2, 0x1e),
+        str_(R2, (R1, 0)),
         b(0x4ad758),
     ]);
     code.patch(0x4c3b68, [bl(load_received_items_counter)]);
