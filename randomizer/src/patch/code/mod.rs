@@ -353,6 +353,16 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     name_bytes.resize(0x40, 0);
     code.rodata().declare(name_bytes); // username padded to 0x40 bytes
     let received_items_counter = code.rodata().declare([0xff, 0xff, 0xff, 0xff]);
+    let framework_pointer = code.rodata().declare([0, 0, 0, 0]);
+
+    // Store the framework pointer for use by the client
+    let store_framework_pointer = code.text().define([
+        ldr(R5, framework_pointer),
+        str_(R0, (R5, 0)),
+        mov(R5, R0),
+        b(0x101130),
+    ]);
+    code.patch(0x10112c, [b(store_framework_pointer)]);
 
     // Save Archipelago information
     let patch_create_save = code.text().define([
