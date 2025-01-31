@@ -28,8 +28,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                     edge!(LoruleCastleArea, |p| p.has_weather_vane(VacantHouseWV)
                         || p.has_weather_vane(BlacksmithWV)
                         || p.has_weather_vane(ThievesTownWV)
-                        || p.has_weather_vane(LoruleCastleWV)
-                        || p.has_weather_vane(SwampPalaceWV)),
+                        || p.has_weather_vane(LoruleCastleWV)),
                     edge!(SkullWoodsOverworld, |p| p.has_weather_vane(SkullWoodsWV)),
                     edge!(MiseryMire, |p| p.has_weather_vane(MiseryMireWV)),
                     edge!(SwampPalaceOutside, |p| p.has_weather_vane(SwampPalaceWV)),
@@ -1038,7 +1037,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                 vec![
                     check!("Treacherous Tower Weather Vane", regions::lorule::death::mountain::SUBREGION),
                     check!("Ice Gimos Fight", regions::lorule::death::mountain::SUBREGION, |p| p
-                        .can_defeat_margomill()),
+                        .can_attack_iceproof()),
                     check!("Lorule Mountain W Ledge", regions::lorule::death::mountain::SUBREGION => {
                         normal: |p| p.can_merge(),
                         glitched: |p| p.has_nice_bombs(),
