@@ -198,7 +198,8 @@ macro_rules! subregion {
                     patcher,
                     seed_info,
                     seed_info.layout
-                        .get($key, SUBREGION)
+                        .get($key, SUBREGION),
+                    $key,
                 )?;)*)?
                 Ok(())
             }

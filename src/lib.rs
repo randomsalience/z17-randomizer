@@ -11,7 +11,7 @@ use modinfo::settings::{
     weather_vanes::WeatherVanes,
 };
 use modinfo::Settings;
-use randomizer::{ArchipelagoInfo, SeedInfo, randomize_pre_fill};
+use randomizer::{ArchipelagoItem, ArchipelagoInfo, SeedInfo, randomize_pre_fill};
 use randomizer::filler::filler_item::{
     Item, Goal, Vane, Crack, PyRandomizable,
     new_item, new_goal, new_vane, new_crack
@@ -35,6 +35,7 @@ fn albwrandomizer(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<TrialsDoor>()?;
     m.add_class::<WeatherVanes>()?;
     m.add_class::<Settings>()?;
+    m.add_class::<ArchipelagoItem>()?;
     m.add_class::<ArchipelagoInfo>()?;
     m.add_class::<SeedInfo>()?;
     m.add_class::<Item>()?;

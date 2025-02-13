@@ -317,6 +317,29 @@ fn sanitize(string: &str) -> String {
     remove.replace_all(&to_space.replace_all(string, " "), "").to_string()
 }
 
+#[derive(Serialize, Debug, Clone)]
+#[pyclass]
+pub struct ArchipelagoItem {
+    pub name: String,
+    pub classification: u8,
+}
+
+#[pymethods]
+impl ArchipelagoItem {
+    pub const CLASS_PROGRESSION: u8 = 1;
+    pub const CLASS_USEFUL: u8 = 2;
+    pub const CLASS_TRAP: u8 = 4;
+
+    #[new]
+    pub fn new(name: String, classification: u8) -> ArchipelagoItem {
+        ArchipelagoItem {name, classification}
+    }
+
+    pub fn is_major(&self) -> bool {
+        self.classification & Self::CLASS_PROGRESSION != 0
+    }
+}
+
 #[derive(Serialize, Default, Debug, Clone)]
 #[pyclass]
 pub struct ArchipelagoInfo {
@@ -324,7 +347,7 @@ pub struct ArchipelagoInfo {
     pub name: String,
 
     #[pyo3(get, set)]
-    pub item_names: DashMap<String, String>,
+    pub items: DashMap<String, ArchipelagoItem>,
 }
 
 #[pymethods]
@@ -337,9 +360,9 @@ impl ArchipelagoInfo {
 
 impl ArchipelagoInfo {
     pub fn get_item_name(&self, location_name: &str) -> Result<String> {
-        self.item_names
+        self.items
             .get(location_name)
-            .map(|s| sanitize(s))
+            .map(|item| sanitize(&item.name))
             .ok_or(Error::internal(format!("Patch file does not contain an item for location {}", location_name)))
     }
 }
@@ -400,6 +423,18 @@ impl SeedInfo {
 
     pub fn is_archipelago(&self) -> bool {
         self.archipelago_info.is_some()
+    }
+
+    pub fn is_major_location(&self, loc_name: &str, default: bool) -> bool {
+        if let Some(info) = &self.archipelago_info {
+            if self.settings.chest_size_matches_contents {
+                info.items.get(loc_name).map(|item| item.is_major()).unwrap_or(false)
+            } else {
+                default
+            }
+        } else {
+            default
+        }
     }
 }
 

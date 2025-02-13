@@ -259,16 +259,18 @@ impl Patcher {
     }
 
     /// Perform patching operations for each patch, depending on what type it is.
-    fn apply<F>(&mut self, patch: Patch, seed_info: &SeedInfo, filler_item: F) -> Result<()>
+    fn apply<F>(&mut self, patch: Patch, seed_info: &SeedInfo, filler_item: F, loc_name: &str) -> Result<()>
     where
         F: Into<Option<Randomizable>> + Clone,
     {
         match patch {
             Patch::Chest { course, stage, unq } => {
-                self.prep_chest(filler_item.into().unwrap(), course, stage, unq, false, seed_info)?;
+                let is_big = seed_info.is_major_location(loc_name, false);
+                self.prep_chest(filler_item.into().unwrap(), course, stage, unq, is_big, seed_info)?;
             },
             Patch::BigChest { course, stage, unq } => {
-                self.prep_chest(filler_item.into().unwrap(), course, stage, unq, true, seed_info)?;
+                let is_big = seed_info.is_major_location(loc_name, true);
+                self.prep_chest(filler_item.into().unwrap(), course, stage, unq, is_big, seed_info)?;
             },
             Patch::Heart { course, scene, unq }
             | Patch::Key { course, scene, unq }
@@ -309,7 +311,7 @@ impl Patcher {
             },
             Patch::Multi(patches) => {
                 for patch in patches {
-                    self.apply(patch, seed_info, filler_item.clone())?;
+                    self.apply(patch, seed_info, filler_item.clone(), loc_name)?;
                 }
             },
             Patch::None => {},
@@ -331,7 +333,7 @@ impl Patcher {
     /// Patch Chest actors and swap their size if needed for CSMC.
     fn prep_chest(
         &mut self, item: Randomizable, course: CourseId, stage: u16, unq: u16, is_big: bool,
-        SeedInfo { settings, .. }: &SeedInfo,
+        SeedInfo { settings, archipelago_info, .. }: &SeedInfo,
     ) -> Result<()> {
         // Set contents
         self.parse_args(course, stage, unq).0 = item.as_item_index() as i32;
@@ -339,7 +341,7 @@ impl Patcher {
         let small_chest = (35, "TreasureBoxS");
         let large_chest = (34, "TreasureBoxL");
 
-        let chest_data = if settings.chest_size_matches_contents {
+        let chest_data = if settings.chest_size_matches_contents && archipelago_info.is_none() {
             if item.is_major_item() {
                 large_chest
             } else {
@@ -701,11 +703,11 @@ pub enum Patch {
 }
 
 impl Patch {
-    pub fn apply<F>(self, patcher: &mut Patcher, seed_info: &SeedInfo, filler_item: F) -> Result<()>
+    pub fn apply<F>(self, patcher: &mut Patcher, seed_info: &SeedInfo, filler_item: F, loc_name: &str) -> Result<()>
     where
         F: Into<Option<Randomizable>>,
     {
-        patcher.apply(self, seed_info, filler_item.into())
+        patcher.apply(self, seed_info, filler_item.into(), loc_name)
     }
 }
 
