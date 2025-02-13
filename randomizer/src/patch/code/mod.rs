@@ -389,6 +389,30 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         pop(&[R0, R1, R4, R5, R6, LR]),
         b(0x349214),
     ]);
+    let receive_items_quick = code.text().define([
+        // Get item
+        mov(R0, R4),
+        ldr(R1, PLAYER_OBJECT_SINGLETON),
+        ldr(R1, (R1, 0x0)),
+        ldr(R1, (R1, 0x10)),
+        bl(0x344834),
+        // Set timer
+        mov(R0, 0x1e),
+        ldr(R1, receive_items_timer),
+        str_(R0, (R1, 0x0)),
+        // Increment received items counter
+        ldr(R4, received_items_counter),
+        ldr(R5, (R4, 0)),
+        add(R5, R5, 1),
+        str_(R5, (R4, 0)),
+        // Set received item to -1
+        ldr(R4, archipelago_header),
+        ldr(R5, -0x1),
+        str_(R5, (R4, 0xc)),
+        // Return to main Link procedure
+        pop(&[R0, R1, R4, R5, R6, LR]),
+        b(0x349214),
+    ]);
     let receive_items = code.text().define([
         // Return to normal function if player state is not 0 (standing) or 1 (walking)
         push(&[R0, R1, R4, R5, R6, LR]),
@@ -408,6 +432,20 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         sub(R5, R5, 0x1).ne(),
         str_(R5, (R6, 0x0)),
         b(receive_items_skip).ne(),
+        // Check if we should use quick get item
+        cmp(R4, 0x04),
+        cmp(R4, 0x05).ne(),
+        cmp(R4, 0x06).ne(),
+        cmp(R4, 0x07).ne(),
+        cmp(R4, 0x08).ne(),
+        cmp(R4, 0x2d).ne(),
+        cmp(R4, 0x2e).ne(),
+        cmp(R4, 0x32).ne(),
+        cmp(R4, 0x3a).ne(),
+        cmp(R4, 0x3b).ne(),
+        cmp(R4, 0x3c).ne(),
+        cmp(R4, 0x5b).ne(),
+        b(receive_items_quick).eq(),
         // Call get item routine
         ldr(R0, PLAYER_OBJECT_SINGLETON),
         ldr(R0, (R0, 0x0)),
