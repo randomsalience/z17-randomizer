@@ -14,6 +14,7 @@ use crate::{
 };
 use filler::cracks::Crack;
 use filler::filler_item::{PyRandomizable, Randomizable};
+use filler::access_check;
 use game::Item::{self};
 use log::{debug, error, info};
 use macros::fail;
@@ -712,6 +713,12 @@ impl SeedInfo {
         }
 
         panic!("No path from {} to {}", source_name, target_name);
+    }
+
+    pub fn access_check(&self) -> bool {
+        let mut rng = StdRng::seed_from_u64(self.seed.clone() as u64);
+        let mut check_map = filler::prefill_check_map(&self.world_graph);
+        access_check(&mut rng, &self, &mut check_map)
     }
 
     pub fn build_layout(&mut self, new_check_map: DashMap<String, PyRandomizable>) {

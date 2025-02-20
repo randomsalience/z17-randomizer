@@ -56,6 +56,14 @@ pub fn fill_all_locations_reachable(
     Ok(())
 }
 
+/// Verify all locations are reachable without actually filling them
+pub fn access_check(rng: &mut StdRng, seed_info: &SeedInfo, check_map: &mut CheckMap) -> bool {
+    let (mut progression_pool, _) = item_pools::get_item_pools(rng, seed_info);
+    place_cracks(seed_info, check_map);
+    place_weather_vanes(seed_info, check_map);
+    verify_all_locations_accessible(seed_info, check_map, &mut progression_pool).is_ok()
+}
+
 /// Crack randomization
 fn place_cracks(SeedInfo { crack_map, .. }: &SeedInfo, check_map: &mut CheckMap) {
     use crate::filler::cracks::Crack::*;
@@ -643,10 +651,10 @@ fn exist_empty_reachable_check(checks: &Vec<Check>, check_map: &mut CheckMap) ->
 }
 
 /// Prefills a map with all checks as defined by the world graph with no values yet assigned
-pub fn prefill_check_map(world_graph: &mut WorldGraph) -> CheckMap {
+pub fn prefill_check_map(world_graph: &WorldGraph) -> CheckMap {
     let mut check_map: DashMap<_, _> = Default::default();
 
-    for location_node in world_graph.values_mut() {
+    for location_node in world_graph.values() {
         for check in location_node.clone().get_checks().iter().flatten().collect::<Vec<&Check>>() {
             if check_map.insert(check.get_name().to_owned(), check.get_quest()).is_some() {
                 fail!("Multiple checks have duplicate name: {}", check.get_name());
@@ -684,7 +692,7 @@ fn verify_all_locations_accessible(
     const MAIAMAI: usize = 100;
     const DUNGEON_PRIZES: usize = 10;
     const STATIC_ITEMS: usize = 20;
-    const PROGRESSION_EVENTS: usize = 36; // "Progression Events" (non-item checks that are still progression)
+    const PROGRESSION_EVENTS: usize = 37; // "Progression Events" (non-item checks that are still progression)
     const WEATHER_VANES: usize = 22;
     const HINT_GHOSTS_OW: usize = 58; // Hint Ghosts (Overworld)
 
