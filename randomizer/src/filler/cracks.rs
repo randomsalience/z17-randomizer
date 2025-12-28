@@ -19,7 +19,7 @@ use std::hash::Hash;
 
 /// Crack item
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum Crack {
     // --- Hyrule --- //
     StylishWoman,

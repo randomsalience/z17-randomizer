@@ -19,7 +19,7 @@ lazy_static! {
     pub(crate) static ref PLUS: String = utf16(&[0xE045]);
     pub(crate) static ref MINUS: String = utf16(&[0xE046]);
     pub(crate) static ref RAVIO: String = utf16(&[0xE05E]);
-    pub(crate) static ref e: String = utf16(&[0xE06A]);
+    pub(crate) static ref SYMBOL_e: String = utf16(&[0xE06A]);
     pub(crate) static ref SYMBOL_BOW: String = utf16(&[0xE06C]);
     pub(crate) static ref SYMBOL_BOMBS: String = utf16(&[0xE06D]);
     pub(crate) static ref SYMBOL_FIRE_ROD: String = utf16(&[0xE06E]);

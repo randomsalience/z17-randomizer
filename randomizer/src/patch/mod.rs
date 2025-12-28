@@ -251,7 +251,7 @@ impl Patcher {
         Ok(if let Some(course) = course.into() { &mut self.course(course)?.language } else { &mut self.boot })
     }
 
-    fn flow<C>(&mut self, course: C) -> Result<rom::language::LoadedMut<FlowMut>>
+    fn flow<C>(&mut self, course: C) -> Result<rom::language::LoadedMut<'_, FlowMut<'_>>>
     where
         C: Into<Option<CourseId>>,
     {

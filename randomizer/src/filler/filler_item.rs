@@ -6,9 +6,8 @@ use game::ghosts::HintGhost;
 use pyo3::prelude::*;
 use rom::flag::Flag;
 use serde::{Serialize, Serializer};
-use std::collections::hash_map::DefaultHasher;
 use std::fmt::Debug;
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Randomizable {
@@ -441,7 +440,7 @@ impl PyRandomizable {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum Item {
     Empty,
 
@@ -1343,7 +1342,7 @@ impl Serialize for Item {
 
 // Quest Items ---------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum Goal {
     // Bosses -------
     Yuga,
@@ -1459,7 +1458,7 @@ impl Serialize for Goal {
 
 /// Weather Vane Item
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum Vane {
     BlacksmithWV,
     DarkPalaceWV,
@@ -1618,14 +1617,5 @@ impl Vane {
     }
     pub fn flag_value(self) -> u16 {
         self.flag().get_value()
-    }
-}
-
-#[pymethods]
-impl Vane {
-    fn __hash__(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
     }
 }

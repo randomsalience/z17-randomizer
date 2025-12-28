@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Deserialize, Serialize)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum PedestalSetting {
     Vanilla,
     #[default]

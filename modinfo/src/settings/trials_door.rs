@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 /// Trial's Door
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
-#[pyclass]
+#[pyclass(eq, eq_int, hash, frozen)]
 pub enum TrialsDoor {
     /// The Trials Door will open by itself automatically, from inside LC only.
     OpenFromInsideOnly,

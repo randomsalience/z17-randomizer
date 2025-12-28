@@ -18,7 +18,7 @@ impl Sarc {
         Self(RefCell::new(Inner::Compressed(data)))
     }
 
-    fn decompress(&self) -> Result<Ref<Archive>> {
+    fn decompress(&self) -> Result<Ref<'_, Archive>> {
         self.0.borrow_mut().decompress()?;
         Ok(Ref::map(self.0.borrow(), |inner| match inner {
             Inner::Decompressed(archive) => archive,
@@ -39,7 +39,7 @@ impl Sarc {
         Ok(archive.find(&path).is_ok())
     }
 
-    pub fn read<P>(&self, path: P) -> Result<File<Ref<[u8]>>>
+    pub fn read<P>(&self, path: P) -> Result<File<Ref<'_, [u8]>>>
     where
         P: Into<String>,
     {

@@ -19,7 +19,7 @@ game = { workspace = true }
 log = { workspace = true }
 macros = { workspace = true }
 modinfo = { workspace = true }
-pyo3 = { version = "0.20.2", features = ["extension-module", "generate-import-lib"] }
+pyo3 = { version = "0.27.2", features = ["extension-module", "generate-import-lib"] }
 rand = { workspace = true }
 randomizer = { path = "./randomizer" }
 rom = { workspace = true }
@@ -53,7 +53,7 @@ log = "0.4.19"
 macros = { path = "./macros" }
 modinfo = { path = "./modinfo" }
 path-absolutize = "3.1.0"
-pyo3 = { version = "0.20.2", features = ["extension-module", "generate-import-lib"] }
+pyo3 = { version = "0.27.2", features = ["extension-module", "generate-import-lib"] }
 rand = { version = "0.8.5", features = ["std_rng"] }
 rom = { path = "./rom" }
 serde = { version = "1.0.183", features = ["derive"] }
