@@ -205,13 +205,13 @@ impl Patcher {
     }
 
     fn course(&mut self, course: CourseId) -> Result<&mut Course> {
-        let Self { game, ref mut courses, .. } = self;
+        let Self { game, courses, .. } = self;
         Ok(courses.entry(course).or_insert(Self::load_course(game, course)))
     }
 
     /// Subtract 1 from stage
     fn scene(&mut self, course: CourseId, stage: u16) -> Result<&mut Scene> {
-        let Self { game, ref mut courses, .. } = self;
+        let Self { game, courses, .. } = self;
         courses
             .entry(course)
             .or_insert(Self::load_course(game, course))
@@ -222,8 +222,8 @@ impl Patcher {
     }
 
     fn scene_meta(&mut self, course: CourseId) -> &mut SceneMeta {
-        let Self { game, ref mut courses, .. } = self;
-        let Course { ref mut scene_meta, .. } = courses.entry(course).or_insert(Self::load_course(game, course));
+        let Self { game, courses, .. } = self;
+        let Course { scene_meta, .. } = courses.entry(course).or_insert(Self::load_course(game, course));
         scene_meta.as_mut().unwrap()
     }
 

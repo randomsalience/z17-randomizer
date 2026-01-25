@@ -12,10 +12,11 @@ use log::{debug, info};
 use macros::fail;
 use modinfo::settings::cracksanity::Cracksanity;
 use modinfo::settings::NiceItems;
+use pyo3::prelude::*;
 use rand::seq::IteratorRandom;
 use rand::seq::SliceRandom;
 use rand::{rngs::StdRng, Rng};
-use rom::Error;
+use regex::Regex;
 use serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
@@ -32,8 +33,23 @@ pub struct Hints {
     pub always_hints: Vec<LocationHint>,
     pub maiamai_hints: Vec<LocationHint>,
     pub sometimes_hints: Vec<LocationHint>,
+    pub custom_hints: Vec<CustomHint>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bow_of_light_hint: Option<BowOfLightHint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_bow_of_light_hint: Option<CustomHint>,
+}
+
+impl Hints {
+    pub fn get_bow_of_light_hint(&self) -> Option<String> {
+        if let Some(bow_of_light_hint) = &self.bow_of_light_hint {
+            Some(bow_of_light_hint.get_hint())
+        } else if let Some(bow_of_light_hint) = &self.custom_bow_of_light_hint {
+            Some(bow_of_light_hint.get_hint())
+        } else {
+            None
+        }
+    }
 }
 
 /// Basic functionality for all in-game hints.
@@ -247,8 +263,59 @@ impl Serialize for BowOfLightHint {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct CustomHint {
+    pub hint: String,
+    pub ghosts: Vec<HintGhost>,
+}
+
+impl CustomHint {
+    fn format(&self, use_color: bool) -> String {
+        let re = Regex::new(r"([^@]*)(@([0-9]*):([^@]*)@)?").unwrap();
+        re.captures_iter(&self.hint)
+            .map(|capture| {
+                if let Some(colornum) = capture.get(3) && let Some(colortext) = capture.get(4) {
+                    if use_color {
+                        format!("{}{}", &capture[1], formatting::color(&colortext.as_str(), colornum.as_str().parse().unwrap()))
+                    } else {
+                        format!("{}{}", &capture[1], colortext.as_str())
+                    }
+                } else {
+                    capture[1].to_string()
+                }
+            })
+            .collect()
+    }
+}
+
+impl Hint for CustomHint {
+    fn get_ghosts(&self) -> &Vec<HintGhost> {
+        &self.ghosts
+    }
+
+    fn get_hint(&self) -> String {
+        self.format(true)
+    }
+
+    fn get_hint_spoiler(&self) -> String {
+        self.format(false)
+    }
+}
+
+impl Serialize for CustomHint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut ser = serializer.serialize_struct("CustomHint", 2)?;
+        ser.serialize_field("hint", &self.get_hint_spoiler())?;
+        ser.serialize_field("ghosts", &SerializeGhosts(&self.ghosts))?;
+        ser.end()
+    }
+}
+
 /// Generates Always, Path, and Sometimes Hints based on settings
-pub fn generate_hints(rng: &mut StdRng, seed_info: &mut SeedInfo, check_map: &mut CheckMap) -> Result<(), Error> {
+pub fn generate_hints(rng: &mut StdRng, seed_info: &mut SeedInfo, check_map: &mut CheckMap) {
     info!("Generating Hints...");
     const NUM_TOTAL_HINTS: usize = 29;
 
@@ -266,6 +333,7 @@ pub fn generate_hints(rng: &mut StdRng, seed_info: &mut SeedInfo, check_map: &mu
     let num_sometimes_hints = NUM_TOTAL_HINTS - always_hints.len() - maiamai_hints.len() - path_hints.len();
     let mut sometimes_hints =
         generate_sometimes_hints(rng, seed_info, check_map, num_sometimes_hints, &taken_checks, &mut taken_ghosts);
+    let custom_hints = Vec::new();
 
     duplicate_hints(
         &mut taken_ghosts, &mut always_hints, &mut maiamai_hints, &mut path_hints, &mut sometimes_hints,
@@ -274,9 +342,28 @@ pub fn generate_hints(rng: &mut StdRng, seed_info: &mut SeedInfo, check_map: &mu
 
     let bow_of_light_hint = generate_bow_of_light_hint(seed_info, check_map);
 
-    seed_info.hints = Hints { path_hints, always_hints, maiamai_hints, sometimes_hints, bow_of_light_hint };
+    seed_info.hints = Hints { path_hints, always_hints, maiamai_hints, sometimes_hints, custom_hints, bow_of_light_hint, custom_bow_of_light_hint: None };
+}
 
-    Ok(())
+/// Create a [`Hints`] object with hints from an external source
+#[pyfunction]
+pub fn set_custom_hints(seed_info: &mut SeedInfo, hints: Vec<String>, bow_of_light_hint: String) {
+    assert!(hints.len() == HintGhost::iter().len(), "Wrong number of hints: {}", hints.len());
+
+    let always_hints = Vec::new();
+    let maiamai_hints = Vec::new();
+    let path_hints = Vec::new();
+    let sometimes_hints = Vec::new();
+    let mut custom_hints = Vec::new();
+
+    for (ghost, hint) in std::iter::zip(HintGhost::iter(), hints) {
+        let ghosts = vec![ghost];
+        custom_hints.push(CustomHint { hint, ghosts });
+    }
+
+    let custom_bow_of_light_hint = Some(CustomHint { hint: bow_of_light_hint, ghosts: Vec::new() });
+
+    seed_info.hints = Hints { path_hints, always_hints, maiamai_hints, sometimes_hints, custom_hints, bow_of_light_hint: None, custom_bow_of_light_hint };
 }
 
 /// Crack Hints

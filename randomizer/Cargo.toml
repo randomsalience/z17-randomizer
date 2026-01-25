@@ -6,7 +6,7 @@ authors = [
     "Rick Fay <rickwithanh@gmail.com>",
     "Caroline Madsen <randomsalience@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 license = "GPL-2.0-or-later"
 
 [dependencies]
