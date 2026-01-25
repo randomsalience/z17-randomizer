@@ -1,5 +1,6 @@
 use log::{error, info, LevelFilter};
 use macros::fail;
+use modinfo::settings::HintGhosts;
 use modinfo::settings::Keysy;
 use modinfo::settings::RaviosShop;
 use modinfo::settings::TrialsDoor;
@@ -205,6 +206,7 @@ fn plando_settings() -> Settings {
         sword_in_shop: false,
         boots_in_shop: false,
         assured_weapon: false,
+        hint_ghosts: HintGhosts::Always,
         chest_size_matches_contents: true,
         minigames_excluded: false,
         skip_big_bomb_flower: true,

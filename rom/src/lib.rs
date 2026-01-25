@@ -21,6 +21,7 @@ pub use {
     course::Course,
     demo::Demo,
     files::{byaml, exheader::ExHeader, romfs::RomFs, sarc::Sarc, Cxi, File, IntoBytes},
+    font::Font,
     item::GetItem,
     language::Language,
     scene::{Scene, Stage},
@@ -35,6 +36,7 @@ pub mod demo;
 mod files;
 pub mod flag;
 pub mod flow;
+pub mod font;
 pub mod item;
 pub mod language;
 pub mod scene;
@@ -233,6 +235,12 @@ impl Rom {
         byaml::from_bytes(
             self.romfs.borrow_mut().read(format!("World/Byaml/{}{}_stage.byaml", course.as_str(), stage + 1))?.get(),
         )
+    }
+
+    pub fn font(&self) -> Result<Font> {
+        let mut archive = self.romfs.borrow_mut().read("US/RegionBoot.szs")?.map(Sarc::from);
+        let file = archive.get_mut().open("US/Font/MessageFont.bffnt")?;
+        Font::new(file.get())
     }
 }
 

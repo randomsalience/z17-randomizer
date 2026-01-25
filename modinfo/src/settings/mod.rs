@@ -1,5 +1,6 @@
 pub use crate::settings::cracks::Cracks;
 pub use crate::settings::cracksanity::Cracksanity;
+pub use crate::settings::hint_ghosts::HintGhosts;
 pub use crate::settings::keysy::Keysy;
 pub use crate::settings::logic::LogicMode;
 pub use crate::settings::nice_items::NiceItems;
@@ -16,6 +17,7 @@ use std::hash::Hash;
 
 pub mod cracks;
 pub mod cracksanity;
+pub mod hint_ghosts;
 pub mod keysy;
 pub mod logic;
 pub mod nice_items;
@@ -164,6 +166,11 @@ pub struct Settings {
     #[serde(default)]
     #[pyo3(get, set)]
     pub assured_weapon: bool,
+
+    /// Hint Ghosts setting
+    #[serde(default)]
+    #[pyo3(get, set)]
+    pub hint_ghosts: HintGhosts,
 
     /// Alters treasure chest sizes depending on their contents: Large for Progression items, Small for everything else.
     #[pyo3(get, set)]

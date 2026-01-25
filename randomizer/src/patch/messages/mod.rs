@@ -8,9 +8,8 @@ use crate::{
     regions, DashMap, Patcher, Randomizable, Result, SeedInfo,
 };
 use game::Course::{self, *};
-use log::info;
+use log::{info, warn};
 use macros::fail;
-use std::collections::btree_map::BTreeMap;
 
 mod hint_ghosts;
 mod msbt;
@@ -401,7 +400,7 @@ fn patch_sahasrahla(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
 }
 
 fn patch_hint_ghosts(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
-    if seed_info.hints.always_hints.is_empty() {
+    if seed_info.hints.always_hints.is_empty() && seed_info.hints.custom_hints.is_empty() {
         info!("No Ghost Hints generated.");
         return Ok(());
     } else {
@@ -414,31 +413,32 @@ fn patch_hint_ghosts(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> 
     add_to_msbt_hint_map(&mut msbt_hint_map, &seed_info.hints.maiamai_hints)?;
     add_to_msbt_hint_map(&mut msbt_hint_map, &seed_info.hints.always_hints)?;
     add_to_msbt_hint_map(&mut msbt_hint_map, &seed_info.hints.sometimes_hints)?;
+    add_to_msbt_hint_map(&mut msbt_hint_map, &seed_info.hints.custom_hints)?;
 
-    // FIXME extremely dumb. Clear out some unused messages in Lost Woods to keep file size down.
-    msbt_hint_map.get_mut(&(FieldLight, "FieldLight_00")).unwrap().extend(BTreeMap::from([
-        ("lgt_MayoinoHintObake_Msg3", String::from("")),
-        ("lgt_MayoinoHintObake_Msg5", String::from("")),
-        ("lgt_MayoinoHintObake_Msg7", String::from("")),
-        ("lgt_MayoinoHintObake_Msg9", String::from("")),
-    ]));
+    // Load Font for word-wrapping
+    let font = patcher.game.font();
+    if let Err(_) = &font {
+        warn!("Could not load font.");
+    }
 
     // Update the MSBT Files with the generated Hints
     for ((course, msbt_file), labels) in msbt_hint_map {
         let mut msbt_file = load_msbt(patcher, course, msbt_file)?;
 
-        let mut og_text_size = 0;
-        let mut hint_text_size = 0;
-
         for (label, hint) in labels {
-            og_text_size += msbt_file.get(label).unwrap().len();
-            hint_text_size += hint.len();
-            msbt_file.set(label, &hint);
-        }
-
-        // fixme band-aid fix to verify we haven't bloated the hint text to the point where the game crashes
-        if hint_text_size > og_text_size {
-            return Err(crate::Error::io("Generated Hint text was too long."));
+            if let Ok(font) = &font {
+                match font.wrap(&hint) {
+                    Ok(wrapped) => {
+                        msbt_file.set(label, &wrapped);
+                    },
+                    Err(err) => {
+                        warn!("{}", err.to_string());
+                        msbt_file.set(label, &hint);
+                    }
+                }
+            } else {
+                msbt_file.set(label, &hint);
+            }
         }
 
         patcher.update(msbt_file.dump())?;
@@ -497,11 +497,11 @@ fn patch_mother_maiamai_sign(patcher: &mut Patcher, seed_info: &SeedInfo) -> Res
 }
 
 fn patch_bow_of_light(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
-    if let Some(bow_of_light_hint) = seed_info.hints.bow_of_light_hint.as_ref() {
+    if let Some(bow_of_light_hint) = seed_info.hints.get_bow_of_light_hint() {
         let mut msbt = load_msbt(patcher, IndoorDark, "HintGhostDark")?;
         // Most of HintGhostDark.msbt is a duplicate of the identical file under FieldDark, but it's not used. Choosing
         // an easily testable ghost Key to repurpose for a new Ghost in Hilda's Study.
-        msbt.set("HintGhost_FieldDark_2C_014", &bow_of_light_hint.get_hint());
+        msbt.set("HintGhost_FieldDark_2C_014", &bow_of_light_hint);
         // fixme also dumb: clear out unused messages to keep filesize down.
         msbt.clear("HintGhost_FieldDark_02_001");
         msbt.clear("HintGhost_FieldDark_03_002");

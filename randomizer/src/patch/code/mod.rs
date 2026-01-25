@@ -9,7 +9,7 @@ use crate::patch::code::arm::{b, bl, bx, blx, Instruction, LR, PC, SP};
 use crate::{patch::util::prize_flag, regions, Layout, Result, SeedInfo};
 use game::Item;
 use game::Item::*;
-use modinfo::settings::{pedestal::PedestalSetting::*, Settings};
+use modinfo::settings::{hint_ghosts::HintGhosts, pedestal::PedestalSetting::*, Settings};
 use rom::flag::Flag;
 use rom::scene::SpawnPoint;
 use rom::ExHeader;
@@ -25,7 +25,9 @@ mod arm;
 #[derive(Debug)]
 pub struct Code {
     text: u32,
+    text_end: u32,
     rodata: u32,
+    rodata_end: u32,
     ips: Ips,
 }
 
@@ -33,17 +35,19 @@ impl Code {
     pub fn new(exheader: &ExHeader) -> Self {
         let entry = exheader.get_text_address();
         let text = entry + exheader.get_text_size();
+        let text_end = exheader.get_rodata_address();
         let rodata = exheader.get_rodata_address() + exheader.get_rodata_size();
+        let rodata_end = exheader.get_data_address();
         let ips = Ips::new(entry);
-        Self { text, rodata, ips }
+        Self { text, text_end, rodata, rodata_end, ips }
     }
 
     pub fn text(&mut self) -> Segment<'_> {
-        Segment { address: &mut self.text, ips: &mut self.ips }
+        Segment { name: "text", address: &mut self.text, ips: &mut self.ips, end_address: &mut self.text_end }
     }
 
     pub fn rodata(&mut self) -> Segment<'_> {
-        Segment { address: &mut self.rodata, ips: &mut self.ips }
+        Segment { name: "rodata", address: &mut self.rodata, ips: &mut self.ips, end_address: &mut self.rodata_end }
     }
 
     pub fn patch<const N: usize>(&mut self, addr: u32, instructions: [Instruction; N]) -> u32 {
@@ -81,7 +85,9 @@ impl Code {
 
 #[derive(Debug)]
 pub struct Segment<'a> {
+    name: &'static str,
     address: &'a mut u32,
+    end_address: &'a mut u32,
     ips: &'a mut Ips,
 }
 
@@ -97,6 +103,7 @@ impl<'a> Segment<'a> {
         data.resize(padded as usize, 0);
         self.ips.append(addr, data);
         *self.address += padded;
+        assert!(self.address <= self.end_address, "{} segment overflow", self.name);
         addr
     }
 
@@ -104,6 +111,7 @@ impl<'a> Segment<'a> {
         let addr = *self.address;
         let len = self.patch(addr, instructions);
         *self.address += len;
+        assert!(self.address <= self.end_address, "{} segment overflow", self.name);
         addr
     }
 
@@ -192,7 +200,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     merchant(&mut code);
     configure_pedestal_requirements(&mut code, &seed_info.settings);
     night_mode(&mut code, &seed_info.settings);
-    show_hint_ghosts(&mut code);
+    show_hint_ghosts(&mut code, &seed_info.settings);
     mother_maiamai(&mut code, &seed_info.layout, &item_names);
     pause_menu_warp(&mut code);
     purple_potion_bottles(&mut code, &seed_info.settings);
@@ -908,16 +916,48 @@ fn golden_bees(code: &mut Code) {
 }
 
 /// Show Hint Ghosts always, without the need for the Hint Glasses
-fn show_hint_ghosts(code: &mut Code) {
-    // Allow talking to Hint Ghosts without glasses
-    code.patch(0x1cb3c8, [mov(R0, 0x1)]);
+fn show_hint_ghosts(code: &mut Code, settings: &Settings) {
+    match settings.hint_ghosts {
+        HintGhosts::Off => {
+            // Prevent talking to Hint Ghosts
+            code.patch(0x1cb3c8, [mov(R0, 0x0)]);
 
-    // Skip checking if Hint Glasses are taken off
-    // Do not change state to "cState_Disappear" (5) or "cState_DisappearWait" (6)
-    code.patch(0x1cb70c, [b(0x1cb74c)]);
+            // Skip checking if Hint Glasses are put on
+            // Do not change state to "cState_Appear" (7)
+            code.patch(0x1cb8cc, [b(0x1cb918)]);
 
-    // Set (initial?) state to "cState_Wait" (0) instead of "cState_DisappearWait" (6)
-    code.patch(0x1cbf9c, [mov(R2, 0x0), b(0x1cbfac)]);
+            // Set initial state to "cState_DisappearWait" (6) instead of "cState_Wait" (0)
+            code.patch(0x1cbf9c, [mov(R2, 0x0), b(0x1cc014)]);
+        },
+        HintGhosts::Glasses => {
+            // Skip checking if Hint Glasses are taken off
+            // Do not change state to "cState_Disappear" (5) or "cState_DisappearWait" (6)
+            code.patch(0x1cb70c, [b(0x1cb74c)]);
+
+            // Check if Hint Glasses in inventory instead of checking if they are worn
+            let fn_check_glasses = code.text().define([
+                push([R1, LR]),
+                mov(R1, 0xe),
+                bl(FN_GET_ITEM_LEVEL),
+                pop([R1, LR]),
+                bx(LR),
+            ]);
+            code.patch(0x1cbf9c, [bl(fn_check_glasses)]);
+            code.patch(0x1cb8cc, [bl(fn_check_glasses)]);
+            code.patch(0x1cb3c8, [bl(fn_check_glasses)]);
+        },
+        HintGhosts::Always => {
+            // Allow talking to Hint Ghosts without glasses
+            code.patch(0x1cb3c8, [mov(R0, 0x1)]);
+
+            // Skip checking if Hint Glasses are taken off
+            // Do not change state to "cState_Disappear" (5) or "cState_DisappearWait" (6)
+            code.patch(0x1cb70c, [b(0x1cb74c)]);
+
+            // Set initial state to "cState_Wait" (0) instead of "cState_DisappearWait" (6)
+            code.patch(0x1cbf9c, [mov(R2, 0x0), b(0x1cbfac)]);
+        }
+    }
 }
 
 fn night_mode(code: &mut Code, settings: &Settings) {

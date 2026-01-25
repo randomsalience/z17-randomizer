@@ -141,7 +141,7 @@ pub(crate) fn yuga_talking(text: &str) -> String {
     color(text, 0xB)
 }
 
-fn color(text: &str, index: u16) -> String {
+pub(crate) fn color(text: &str, index: u16) -> String {
     let prefix = String::from_utf16(&[0xE, 0x0, 0x3, 0x2, index]).unwrap();
     let suffix = String::from_utf16(&[0xE, 0x0, 0x3, 0x2, 0xFFFF]).unwrap();
     format!("{}{}{}", prefix, text, suffix)

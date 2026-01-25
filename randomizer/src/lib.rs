@@ -41,7 +41,7 @@ use twox_hash::XxHash64;
 
 pub mod constants;
 pub mod filler;
-mod hints;
+pub mod hints;
 mod metrics;
 mod patch;
 pub mod regions;
@@ -631,7 +631,7 @@ fn calculate_seed_info(seed: u32, settings: Settings, hash: SeedHash, rng: &mut 
 
     // Post-analysis: Metrics and Hints
     metrics::calculate_metrics(&mut seed_info, check_map)?;
-    hints::generate_hints(rng, &mut seed_info, check_map)?;
+    hints::generate_hints(rng, &mut seed_info, check_map);
 
     Ok(seed_info)
 }
@@ -668,9 +668,10 @@ pub fn randomize_pre_fill(seed: u32, settings: Settings, archipelago_info: Optio
 
 #[pymethods]
 impl SeedInfo {
-    pub fn get_region_graph(&self) -> DashMap<String, (Vec<String>, Vec<String>)> {
+    pub fn get_region_graph(&self) -> DashMap<String, (String, Vec<String>, Vec<String>)> {
         self.world_graph.iter().map(|(location, location_node)|
             (location.to_string(), (
+                location_node.get_name().to_string(),
                 match location_node.get_checks() {
                     None => Vec::new(),
                     Some(checks) => checks.iter().map(|check| check.get_name().to_string()).collect(),

@@ -1,6 +1,7 @@
 use log::info;
 use modinfo::settings::cracks::Cracks;
 use modinfo::settings::cracksanity::Cracksanity;
+use modinfo::settings::hint_ghosts::HintGhosts;
 use modinfo::settings::keysy::Keysy;
 use modinfo::settings::nice_items::NiceItems;
 use modinfo::settings::ravios_shop::RaviosShop;
@@ -262,6 +263,7 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         sword_in_shop,
         boots_in_shop,
         assured_weapon,
+        hint_ghosts: HintGhosts::Always,
         chest_size_matches_contents,
         minigames_excluded,
         skip_big_bomb_flower,

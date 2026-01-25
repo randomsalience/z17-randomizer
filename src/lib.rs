@@ -10,7 +10,7 @@ pub fn logging_on() {
 mod albwrandomizer {
     #[pymodule_export]
     use modinfo::settings::{
-        Cracks, Cracksanity, Keysy, LogicMode, NiceItems,
+        Cracks, Cracksanity, HintGhosts, Keysy, LogicMode, NiceItems,
         PedestalSetting, RaviosShop, TrialsDoor, WeatherVanes
     };
 
@@ -24,6 +24,7 @@ mod albwrandomizer {
             Item, Goal, Vane, Crack, PyRandomizable,
             new_item, new_goal, new_vane, new_crack
         },
+        hints::set_custom_hints,
         randomize_pre_fill
     };
 
