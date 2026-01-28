@@ -178,7 +178,9 @@ impl Randomizable {
                     | Item::ScootFruit01
                     | Item::ScootFruit02
                     | Item::GoldBee01
-                    | Item::TriforceOfCourage,
+                    | Item::TriforceOfCourage
+                    | Item::Merge01
+                    | Item::Merge02,
             ) | Self::Goal(
                 Goal::RavioShopOpen
                     | Goal::ShadyGuyTrigger
@@ -320,6 +322,8 @@ impl Randomizable {
                     | Shield02
                     | Shield03
                     | Shield04
+                    | Merge01
+                    | Merge02
             )
         )
     }
@@ -875,6 +879,10 @@ pub enum Item {
     GoldBee03,
     Fairy02,
     Shield04,
+
+    // Items for additional modes
+    Merge01,
+    Merge02,
 }
 
 impl Item {
@@ -1043,6 +1051,8 @@ impl Item {
             Fairy01 | Fairy02 => game::Item::Fairy,
 
             TriforceOfCourage => game::Item::TriforceCourage,
+
+            Merge01 | Merge02 => game::Item::RingRental,
         }
     }
 
@@ -1178,6 +1188,7 @@ impl Item {
             TriforceOfCourage => "the",
 
             Quake => "",
+            Merge01 | Merge02 => "a",
         }
     }
 
@@ -1315,6 +1326,7 @@ impl Item {
             Shield01 | Shield02 | Shield03 | Shield04 => "Shield",
             TriforceOfCourage => "Triforce of Courage",
             Quake => "Quake",
+            Merge01 | Merge02 => "Merge+",
         }
     }
 
