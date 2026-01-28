@@ -301,10 +301,13 @@ impl<'s> Progress<'s> {
 
     pub fn are_cracks_open(&self) -> bool {
         self.seed_info.settings.cracks == Cracks::Open || self.has(Quake)
+            || self.has_both(Item::Merge01, Item::Merge02)
     }
 
     pub fn can_merge(&self) -> bool {
-        self.seed_info.settings.start_with_merge || self.has_both(Item::RaviosBracelet01, Item::RaviosBracelet02)
+        self.seed_info.settings.start_with_merge
+            || self.has_both(Item::RaviosBracelet01, Item::RaviosBracelet02)
+            || self.has_either(Item::Merge01, Item::Merge02)
     }
 
     pub fn has_mail(&self) -> bool {

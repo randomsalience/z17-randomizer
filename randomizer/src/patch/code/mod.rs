@@ -9,7 +9,7 @@ use crate::patch::code::arm::{b, bl, bx, blx, Instruction, LR, PC, SP};
 use crate::{patch::util::prize_flag, regions, Layout, Result, SeedInfo};
 use game::Item;
 use game::Item::*;
-use modinfo::settings::{hint_ghosts::HintGhosts, pedestal::PedestalSetting::*, Settings};
+use modinfo::settings::{Cracks, HintGhosts, PedestalSetting::*, Settings};
 use rom::flag::Flag;
 use rom::scene::SpawnPoint;
 use rom::ExHeader;
@@ -194,7 +194,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 
     fix_joystick_rotation(&mut code);
     rental_items(&mut code);
-    progressive_items(&mut code);
+    progressive_items(&mut code, &seed_info.settings);
     bracelet(&mut code, &seed_info.settings);
     ore_progress(&mut code);
     merchant(&mut code);
@@ -1048,7 +1048,7 @@ fn rental_items(code: &mut Code) {
     code.patch(0x652E34, [b(setter).eq()]);
 }
 
-fn progressive_items(code: &mut Code) {
+fn progressive_items(code: &mut Code, settings: &Settings) {
     let return_label = 0x2922C4;
     /*let first_sword = code.text().define([
         ldr(R0, (R0, 0x4C4)),
@@ -1083,15 +1083,30 @@ fn progressive_items(code: &mut Code) {
             b(return_label),
         ])
     };*/
-    let progressive_bracelet = code.text().define([
-        cmp(R5, 0x2A),
-        b(progressive_sword).ne(),
-        ldr(R0, (R0, 0x490)),
-        cmp(R0, 0),
-        mov(R5, 0x2A).eq(),
-        mov(R5, 0x2B).ne(),
-        b(return_label),
-    ]);
+    let progressive_bracelet = match settings.cracks {
+        Cracks::Open | Cracks::Closed => {
+            code.text().define([
+                cmp(R5, 0x2A),
+                b(progressive_sword).ne(),
+                ldr(R0, (R0, 0x490)),
+                cmp(R0, 0),
+                mov(R5, 0x2A).eq(),
+                mov(R5, 0x2B).ne(),
+                b(return_label),
+            ])
+        },
+        Cracks::Progressive => {
+            code.text().define([
+                cmp(R5, 0x2A),
+                b(progressive_sword).ne(),
+                ldr(R0, (R0, 0x490)),
+                cmp(R0, 0),
+                mov(R5, 0x2B).eq(),
+                mov(R5, 0).ne(),
+                b(return_label),
+            ])
+        }
+    };
     let progressive_glove = code.text().define([
         cmp(R5, 0x2F),
         b(progressive_bracelet).ne(),

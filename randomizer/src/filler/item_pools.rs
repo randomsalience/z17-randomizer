@@ -60,9 +60,12 @@ pub(crate) fn get_item_pools(rng: &mut StdRng, SeedInfo { settings, .. }: &SeedI
     // Ravio's Bracelets
     if settings.start_with_merge {
         delta_junk_items += 2;
-    } else {
+    } else if settings.cracks != Cracks::Progressive {
         progression_items.push(RaviosBracelet01);
         progression_items.push(RaviosBracelet02);
+    } else {
+        progression_items.push(Merge01);
+        progression_items.push(Merge02);
     }
 
     // Pouch

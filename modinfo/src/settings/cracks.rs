@@ -11,6 +11,8 @@ pub enum Cracks {
     Closed,
     /// All Cracks are open from the start of the game, and the Quake Item is not in the item pool.
     Open,
+    /// The Bracelets and Quake are replaced by two Merge items. The first lets you merge and the second opens the cracks.
+    Progressive,
 }
 
 impl TryFrom<u8> for Cracks {
@@ -20,6 +22,7 @@ impl TryFrom<u8> for Cracks {
         match value {
             0 => Ok(Self::Closed),
             1 => Ok(Self::Open),
+            2 => Ok(Self::Progressive),
             _ => Err("Invalid Cracks index: {}".to_owned()),
         }
     }
@@ -33,6 +36,7 @@ impl Display for Cracks {
             match self {
                 Self::Closed => "Closed",
                 Self::Open => "Open",
+                Self::Progressive => "Progressive",
             }
         )
     }
