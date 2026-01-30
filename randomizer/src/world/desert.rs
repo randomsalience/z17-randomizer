@@ -64,8 +64,8 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                     check!(
                         "[DP] (1F) Big Chest (Behind Wall)",
                         regions::dungeons::desert::palace::SUBREGION => {
-                        normal: |p| p.has_sand_rod() && p.can_merge() && p.has_desert_keys(1),
-                        hell: |p| p.has_sand_rod() && p.has_tornado_rod() && p.has_desert_keys(1),
+                        normal: |p| p.has_sand_rod() && p.can_merge() && p.has_desert_keys(5),
+                        hell: |p| p.has_sand_rod() && p.has_tornado_rod() && p.has_desert_keys(5),
                     }),
                 ],
                 vec![
