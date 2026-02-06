@@ -6,7 +6,6 @@ use {
     std::{
         cell::{Ref, RefCell},
         collections::BTreeMap,
-        io::Cursor,
     },
 };
 
@@ -139,9 +138,7 @@ impl Inner {
     fn decompress(&mut self) -> Result<&mut Archive> {
         if let Self::Compressed(data) = self {
             *self = Self::Decompressed(Archive::from(
-                yaz0::Yaz0Archive::new(Cursor::new(&data))
-                    .map_err(|_| Error::new("Archive could not be decompressed.".to_string()))?
-                    .decompress()
+                szs::decode(&data)
                     .map_err(|_| Error::new("Archive could not be decompressed.".to_string()))?
                     .into(),
             )?);
@@ -295,11 +292,9 @@ fn compress(data: &[u8]) -> Box<[u8]> {
 
 #[cfg(not(debug_assertions))]
 fn compress(data: &[u8]) -> Box<[u8]> {
-    let mut buf = vec![];
-    yaz0::Yaz0Writer::new(&mut buf)
-        .compress_and_write(&data, yaz0::CompressionLevel::Lookahead { quality: 1 })
-        .expect("Yaz0 compression failed.");
-    buf.into()
+    szs::encode(data, szs::EncodeAlgo::MK8)
+        .expect("Yaz0 compression failed.")
+        .into()
 }
 
 #[cfg(test)]
