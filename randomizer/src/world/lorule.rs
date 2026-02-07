@@ -23,6 +23,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleBellTravel,
             location(
                 "Lorule Bell Travel",
+                "Lorule Bell Travel",
                 vec![],
                 vec![
                     edge!(LoruleCastleArea, |p| p.has_weather_vane(VacantHouseWV)
@@ -44,6 +45,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         (
             LoruleCastleArea,
             location(
+                "Lorule Castle Area",
                 "Lorule Castle Area",
                 vec![
                     // check!("Vacant House Crack", regions::lorule::field::main::SUBREGION, |p| p.can_merge()),
@@ -133,12 +135,18 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         ),
         (
             VeteranThiefsHouse,
-            location("Veteran Thief's House", vec![ghost(HintGhost::VeteranThief)], vec![edge!(LoruleCastleArea)]),
+            location(
+                "Veteran Thief's House",
+                "Lorule Castle Area",
+                vec![ghost(HintGhost::VeteranThief)],
+                vec![edge!(LoruleCastleArea)]
+            ),
         ),
         (
             FortunesChoiceLorule,
             location(
                 "Fortune's Choice (Lorule)",
+                "Lorule Castle Area",
                 vec![ghost(HintGhost::FortunesChoice)],
                 vec![edge!(LoruleCastleArea)],
             ),
@@ -147,6 +155,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             ThievesTownItemShop,
             location(
                 "Thieves' Town Item Shop",
+                "Lorule Castle Area",
                 vec![
                     check!("Thieves' Town Item Shop (1)", regions::lorule::field::main::SUBREGION),
                     out_of_logic("Thieves' Town Item Shop (2)", regions::lorule::field::main::SUBREGION),
@@ -158,12 +167,18 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         ),
         (
             BigBombFlowerShop,
-            location("Big Bomb Flower Shop", vec![], vec![edge!(LoruleCastleArea), edge!(BigBombFlowerField)]),
+            location(
+                "Big Bomb Flower Shop",
+                "Lorule Castle Area",
+                vec![],
+                vec![edge!(LoruleCastleArea), edge!(BigBombFlowerField)]
+            ),
         ),
         (
             BigBombFlowerField,
             location(
                 "Big Bomb Flower Field",
+                "Lorule Castle Area",
                 vec![
                     goal!("Obtain Big Bomb Flower", Goal::BigBombFlower),
                     check!("[Mai] Big Bomb Flower Grass", regions::lorule::field::main::SUBREGION),
@@ -179,6 +194,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleGraveyard,
             location(
                 "Lorule Graveyard",
+                "Graveyard",
                 vec![
                     check!("Graveyard Weather Vane", regions::lorule::graveyard::lorule::SUBREGION),
                     check!("Graveyard Peninsula", regions::lorule::graveyard::lorule::SUBREGION),
@@ -210,6 +226,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             Location::GraveyardLedgeLorule,
             location(
                 "Graveyard Ledge Lorule",
+                "Graveyard",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -222,6 +239,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         (
             LoruleSanctuary,
             location(
+                "Lorule Sanctuary",
                 "Lorule Sanctuary",
                 vec![
                     check!("[LS] Entrance Chest", regions::lorule::graveyard::lorule::SUBREGION, |p| p.has_lamp()
@@ -254,6 +272,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleSanctuaryCaveLower,
             location(
                 "Philosopher's Cave Lower",
+                "Graveyard",
                 vec![],
                 vec![
                     crack_left(Philosopher, crack_map, false),
@@ -266,6 +285,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleSanctuaryCaveUpper,
             location(
                 "Philosopher's Cave Upper",
+                "Graveyard",
                 vec![check!("Philosopher's Cave", regions::lorule::graveyard::lorule::SUBREGION, |p| p.can_merge())],
                 vec![edge!(LoruleSanctuary), edge!(LoruleSanctuaryCaveLower)],
             ),
@@ -274,6 +294,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             GreatRupeeFairyCave,
             location(
                 "Great Rupee Fairy Cave",
+                "Lorule Castle Area",
                 vec![check!("Great Rupee Fairy", regions::lorule::field::main::SUBREGION => {
                     normal: |p| p.has_rupees(4000), // Actual requirement is 3000 but higher threshold helps prevent rupee grinds
                     hell: |_| true, // suffer lol
@@ -285,6 +306,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleBlacksmith,
             location(
                 "Lorule Blacksmith",
+                "Lorule Castle Area",
                 vec![check!("Blacksmith (Lorule)", regions::lorule::field::main::SUBREGION, |p| {
                     p.has_master_ore(4) && p.can_access_hyrule_blacksmith() && p.can_access_lorule_castle_field()
                 })],
@@ -295,6 +317,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             BootsDungeon,
             location(
                 "Pegasus Boots Pyramid",
+                "Lorule Castle Area",
                 vec![check!("Pegasus Boots Pyramid", regions::lorule::field::main::SUBREGION => {
                     normal: |p| p.has_boots() && p.can_hit_switch_bootless(),
                     hard: |p| p.has_master_sword() || p.has_bombs(),
@@ -303,11 +326,20 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                 vec![edge!(LoruleCastleArea)],
             ),
         ),
-        (VacantHouseBottom, location("Vacant House (Bottom)", vec![], vec![edge!(LoruleCastleArea)])),
+        (
+            VacantHouseBottom,
+            location(
+                "Vacant House (Bottom)",
+                "Lorule Castle Area",
+                vec![],
+                vec![edge!(LoruleCastleArea)]
+            ),
+        ),
         (
             VacantHouseTop,
             location(
                 "Vacant House (Top)",
+                "Lorule Castle Area",
                 vec![check!("Vacant House", regions::lorule::field::main::SUBREGION)],
                 vec![edge!(LoruleCastleArea => {
                     normal: |p| p.has_bombs(),
@@ -319,6 +351,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             ThiefGirlCave,
             location(
                 "Thief Girl",
+                "Lorule Castle Area",
                 vec![check!("Thief Girl", regions::lorule::field::main::SUBREGION, |p| p.has_saved_thief_girl())],
                 vec![edge!(LoruleCastleArea)],
             ),
@@ -327,6 +360,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             SwampCave,
             location(
                 "Swamp Cave",
+                "Lorule Castle Area",
                 vec![
                     check!("Swamp Cave (Left)", regions::lorule::field::main::SUBREGION),
                     check!("Swamp Cave (Middle)", regions::lorule::field::main::SUBREGION),
@@ -339,6 +373,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             BigBombCave,
             location(
                 "Haunted Grove Big Bomb Cave",
+                "Lorule Castle Area",
                 vec![check!("Big Bomb Flower Cave", regions::lorule::field::main::SUBREGION)],
                 vec![edge!(LoruleCastleArea)],
             ),
@@ -347,6 +382,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HauntedGroveLedge,
             location(
                 "Haunted Grove Upper Ledge",
+                "Lorule Castle Area",
                 vec![
                     check!("Lorule Field Hookshot Chest", regions::lorule::field::main::SUBREGION, |p| p
                         .has_hookshot()),
@@ -365,6 +401,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         (
             Desert,
             location(
+                "Desert",
                 "Desert",
                 vec![
                     check!("[Mai] Buried in the Desert", regions::hyrule::desert::mystery::SUBREGION, |p| p
@@ -398,6 +435,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertNorthLedge,
             location(
                 "Desert North Ledge",
+                "Desert",
                 None,
                 vec![
                     edge!(Desert),
@@ -410,6 +448,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertUseBlockedCrackRight,
             location(
                 "Desert Use Blocked Crack Right",
+                "Desert",
                 None,
                 vec![
                     // crack is blocked, no return paths
@@ -421,6 +460,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertUseBlockedCrackLeft,
             location(
                 "Desert Use Blocked Crack Left",
+                "Desert",
                 None,
                 vec![
                     // crack is blocked, no return paths
@@ -432,6 +472,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertCenterLedge,
             location(
                 "Desert Center Ledge",
+                "Desert",
                 vec![ghost(HintGhost::DesertCenter)],
                 vec![
                     edge!(Desert),
@@ -444,6 +485,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertSouthWestLedge,
             location(
                 "Desert South West Ledge",
+                "Desert",
                 vec![ghost(HintGhost::DesertSouthWest)],
                 vec![
                     fast_travel_hyrule(),
@@ -458,6 +500,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalaceWeatherVane,
             location(
                 "Desert Palace Weather Vane",
+                "Desert",
                 vec![
                     check!("Desert Palace Weather Vane", regions::hyrule::desert::mystery::SUBREGION),
                     check!("[Mai] Buried near Desert Palace", regions::hyrule::desert::mystery::SUBREGION, |p| p
@@ -473,6 +516,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         (
             MiseryMire,
             location(
+                "Misery Mire",
                 "Misery Mire",
                 vec![
                     check!("Misery Mire Weather Vane", regions::lorule::misery::mire::SUBREGION),
@@ -524,6 +568,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MiseryMireLeftPillarMerged,
             location(
                 "Misery Mire Left Pillar Merged",
+                "Misery Mire",
                 None,
                 vec![
                     edge!(MiseryMire, |p| p.has_flippers()),
@@ -536,6 +581,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MiseryMireBridge,
             location(
                 "Misery Mire Bridge",
+                "Misery Mire",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -559,6 +605,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MiseryMireOoB,
             location(
                 "Misery Mire Out of Bounds",
+                "Misery Mire",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -575,6 +622,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             SandRodDungeon,
             location(
                 "Sand Mini-Dungeon",
+                "Misery Mire",
                 vec![check!("Sand Mini-Dungeon", regions::lorule::misery::mire::SUBREGION => {
                     normal: |p| p.has_sand_rod() && p.has_tornado_rod(),
                     glitched: |p| p.has_sand_rod(),
@@ -586,6 +634,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MiseryMireLedge,
             location(
                 "Misery Mire Ledge",
+                "Misery Mire",
                 vec![check!("Misery Mire Ledge", regions::lorule::misery::mire::SUBREGION)],
                 vec![fast_travel_lorule(), edge!(MiseryMire)],
             ),
@@ -595,6 +644,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleLakeEast,
             location(
                 "Lorule Lake East",
+                "Turtle Rock Area",
                 vec![
                     check!("[Mai] Lorule Lake SE Wall", regions::lorule::lake::lorule::SUBREGION, |p| p.can_merge()),
                     check!("[Mai] Lorule Lake Skull", regions::lorule::lake::lorule::SUBREGION => {
@@ -629,6 +679,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleLakeNorthWest,
             location(
                 "Lorule Lake North West",
+                "Turtle Rock Area",
                 vec![
                     goal!("Turtle (wall)", Goal::TurtleWall, |p| p.can_merge()),
                     check!("Lorule Lake Chest", regions::lorule::lake::lorule::SUBREGION),
@@ -649,6 +700,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleLakeSouthWest,
             location(
                 "Lorule Lake South West",
+                "Turtle Rock Area",
                 vec![
                     goal!("Turtle (flipped)", Goal::TurtleFlipped),
                     check!("[Mai] Lorule Lake Rock", regions::lorule::lake::lorule::SUBREGION, |p| p.has_titans_mitt()),
@@ -663,6 +715,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleLakesideItemShop,
             location(
                 "Lorule Lakeside Item Shop",
+                "Turtle Rock Area",
                 vec![
                     check!("Lorule Lakeside Item Shop (1)", regions::lorule::lake::lorule::SUBREGION),
                     out_of_logic("Lorule Lakeside Item Shop (2)", regions::lorule::lake::lorule::SUBREGION),
@@ -676,6 +729,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleRiverCrackShallows,
             location(
                 "Lorule River Crack Shallows",
+                "Turtle Rock Area",
                 None,
                 vec![
                     fast_travel_lorule(),
@@ -690,6 +744,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleLakeWater,
             location(
                 "Lorule Lake Water",
+                "Turtle Rock Area",
                 vec![
                     goal!("Turtle (bullied)", Goal::TurtleAttacked, |p| p.can_attack()),
                     check!("[Mai] Lorule Lake Water", regions::lorule::lake::lorule::SUBREGION),
@@ -715,6 +770,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             TurtleRockWeatherVane,
             location(
                 "Turtle Rock Weather Vane",
+                "Turtle Rock Area",
                 vec![
                     check!("Turtle Rock Weather Vane", regions::lorule::lake::lorule::SUBREGION),
                     ghost(HintGhost::TurtleRockOutside),
@@ -730,6 +786,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             TurtleRockFrontDoor,
             location(
                 "Turtle Rock Front Door",
+                "Turtle Rock Area",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -743,6 +800,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         (
             DarkRuins,
             location(
+                "Dark Ruins",
                 "Dark Ruins",
                 vec![
                     check!("Dark/Turtle Chest", regions::lorule::lake::lorule::SUBREGION),
@@ -786,6 +844,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkRuinsBlockedCrack,
             location(
                 "Dark Ruins Blocked Crack",
+                "Dark Ruins",
                 None,
                 vec![
                     edge!(DarkRuins),
@@ -798,6 +857,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkMazeEntrance,
             location(
                 "Dark Maze Entrance",
+                "Dark Ruins",
                 vec![check!("Dark Maze Chest", regions::lorule::dark::ruins::SUBREGION, |p| p.can_merge()
                     || p.has_sage_gulley())],
                 vec![
@@ -825,6 +885,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkMazeHalfway,
             location(
                 "Dark Maze Halfway",
+                "Dark Ruins",
                 vec![
                     check!("Dark Maze Ledge", regions::lorule::dark::ruins::SUBREGION),
                     check!("[Mai] Dark Maze Center Wall", regions::lorule::dark::ruins::SUBREGION, |p| p.can_merge()),
@@ -854,6 +915,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkPalaceWeatherVane,
             location(
                 "Dark Ruins Weather Vane",
+                "Dark Ruins",
                 vec![
                     check!("Dark Palace Weather Vane", regions::lorule::dark::ruins::SUBREGION),
                     ghost(HintGhost::DarkPalaceOutside),
@@ -869,6 +931,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkRuinsRiver,
             location(
                 "Dark Ruins River",
+                "Dark Ruins",
                 None,
                 vec![edge!(DarkRuins, |p| p.has_flippers()), edge!(DarkRuinsShallowWater, |p| p.has_flippers())],
             ),
@@ -877,6 +940,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DarkRuinsShallowWater,
             location(
                 "Dark Ruins Shallow Water",
+                "Dark Ruins",
                 None,
                 vec![
                     fast_travel_lorule(),
@@ -892,6 +956,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             KusDomainSouth,
             location(
                 "Ku's Domain South",
+                "Dark Ruins",
                 vec![check!("[Mai] Ku's Domain Grass", regions::lorule::dark::ruins::SUBREGION, |p| p.can_merge()
                     && p.can_cut_grass())],
                 vec![
@@ -923,6 +988,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             Location::KusDomain,
             location(
                 "Ku's Domain",
+                "Dark Ruins",
                 vec![
                     check!("Ku's Domain Fight", regions::lorule::dark::ruins::SUBREGION => {
                         normal: |p| {
@@ -943,6 +1009,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HinoxCaveWater,
             location(
                 "Hinox Cave Water",
+                "Dark Ruins",
                 vec![
                     // This location assumes the player is already swimming, real or fake
                     check!("[Mai] Outside Hinox Cave", regions::lorule::dark::ruins::SUBREGION),
@@ -954,6 +1021,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HinoxCaveShallowWater,
             location(
                 "Hinox Cave Shallow Water",
+                "Dark Ruins",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -967,6 +1035,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HinoxCave,
             location(
                 "Hinox Cave",
+                "Dark Ruins",
                 vec![
                     check!("Hinox (1)", regions::lorule::dark::ruins::SUBREGION),
                     check!("Hinox (2)", regions::lorule::dark::ruins::SUBREGION),
@@ -983,6 +1052,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             SkullWoodsOverworld,
             location(
                 "Skull Woods (Overworld)",
+                "Skull Woods Area",
                 vec![
                     check!("Skull Woods Weather Vane", regions::lorule::skull::overworld::SUBREGION),
                     check!("n-Shaped House", regions::lorule::skull::overworld::SUBREGION => {
@@ -1025,6 +1095,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MysteriousManCave,
             location(
                 "Mysterious Man Cave",
+                "Skull Woods Area",
                 vec![check!("Mysterious Man", regions::lorule::skull::overworld::SUBREGION, |p| p.has_bottle())],
                 vec![edge!(SkullWoodsOverworld)],
             ),
@@ -1034,6 +1105,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleDeathWest,
             location(
                 "Lorule Death Mountain West",
+                "Lorule Death Mountain",
                 vec![
                     check!("Treacherous Tower Weather Vane", regions::lorule::death::mountain::SUBREGION),
                     check!("Ice Gimos Fight", regions::lorule::death::mountain::SUBREGION, |p| p
@@ -1083,6 +1155,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             Location::RossosOreMineLorule,
             location(
                 "Rosso's Ore Mine Lorule",
+                "Lorule Death Mountain",
                 vec![
                     check!("Death Mountain (Lorule) Weather Vane", regions::lorule::death::mountain::SUBREGION),
                     check!("[Mai] Lorule Mountain E Wall", regions::lorule::death::mountain::SUBREGION, |p| p
@@ -1101,6 +1174,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             IceCaveEast,
             location(
                 "Ice Cave East",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     edge!(RossosOreMineLorule),
@@ -1112,6 +1186,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             IceCaveCenter,
             location(
                 "Ice Cave Center",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     old_path(IceCaveEast, Some(|p| p.can_merge()), None, None, None, None),
@@ -1132,6 +1207,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             IceCaveSouth,
             location(
                 "Ice Cave South",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     edge!(LoruleDeathEastLedgeLower),
@@ -1143,6 +1219,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             IceCaveWest,
             location(
                 "Ice Cave West",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     edge!(IceCaveCenter),
@@ -1155,6 +1232,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             IceCaveNorthWest,
             location(
                 "Ice Cave North West",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     edge!(FloatingIslandLorule),
@@ -1166,6 +1244,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             Location::FloatingIslandLorule,
             location(
                 "Floating Island Lorule",
+                "Lorule Death Mountain",
                 vec![],
                 vec![
                     fast_travel_lorule(),
@@ -1177,12 +1256,18 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
         ),
         (
             IceCaveSouthWest,
-            location("Ice Cave South West", vec![], vec![edge!(IceCaveWest), edge!(LoruleDeathEastLedgeUpper)]),
+            location(
+                "Ice Cave South West",
+                "Lorule Death Mountain",
+                vec![],
+                vec![edge!(IceCaveWest), edge!(LoruleDeathEastLedgeUpper)]
+            ),
         ),
         (
             LoruleDeathEastLedgeUpper,
             location(
                 "Lorule Death Mountain East Upper Ledge",
+                "Lorule Death Mountain",
                 vec![check!("Ice Cave Ledge", regions::lorule::death::mountain::SUBREGION, |p| p.can_merge())],
                 vec![
                     fast_travel_lorule(),
@@ -1196,6 +1281,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleDeathEastLedgeLower,
             location(
                 "Lorule Death Mountain East Lower Ledge",
+                "Lorule Death Mountain",
                 vec![check!("[Mai] Ice Cave Ledge", regions::lorule::death::mountain::SUBREGION, |p| p
                     .can_destroy_skull())],
                 vec![fast_travel_lorule(), edge!(IceCaveSouth)],
@@ -1205,6 +1291,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleDeathEastTop,
             location(
                 "Lorule Death Mountain East Top",
+                "Lorule Death Mountain",
                 vec![
                     check!("Ice Ruins Weather Vane", regions::lorule::death::mountain::SUBREGION),
                     check!("Behind Ice Gimos", regions::lorule::death::mountain::SUBREGION, |p| p.has_fire_rod()),

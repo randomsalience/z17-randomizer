@@ -13,6 +13,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HyruleCastleDungeon,
             location(
                 "Inside Hyrule Castle",
+                "Inside Hyrule Castle",
                 None,
                 vec![
                     edge!(HyruleCastleRoof),
@@ -27,6 +28,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HyruleCastleDungeonBoss,
             location(
                 "Hyrule Castle Dungeon Boss",
+                "Inside Hyrule Castle",
                 None,
                 vec![
                     edge!(HyruleCastleDungeon, |p| p.can_defeat_yuga2()),
@@ -38,6 +40,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             ZeldasStudy,
             location(
                 "Zelda's Study",
+                "Inside Hyrule Castle",
                 //vec![check!("[HC] Crack", regions::dungeons::hyrule::castle::SUBREGION, |p| p.can_merge())],
                 None,
                 vec![

@@ -18,6 +18,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalaceFoyer,
             location(
                 "Desert Palace Entrance",
+                "Desert Palace",
                 vec![check!("[DP] (1F) Entrance", regions::dungeons::desert::palace::SUBREGION => {
                     normal: |p| p.has_sand_rod() && p.can_merge(),
                     hell: |p| p.has_sand_rod() && p.has_tornado_rod(),
@@ -35,6 +36,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalace1F,
             location(
                 "Desert Palace 1F",
+                "Desert Palace",
                 vec![
                     check!("[DP] (1F) Sand Switch Room", regions::dungeons::desert::palace::SUBREGION => {
                         normal: |p| p.has_sand_rod() && p.can_merge(),
@@ -78,6 +80,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalaceMidwayLedge,
             location(
                 "Desert Palace Midway Ledge",
+                "Desert Palace",
                 None,
                 vec![
                     fast_travel_hyrule(),
@@ -91,6 +94,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalace2FMiniboss,
             location(
                 "Desert Palace 2F Miniboss",
+                "Desert Palace",
                 None,
                 vec![
                     edge!(
@@ -110,6 +114,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalace2F,
             location(
                 "Desert Palace 2F",
+                "Desert Palace",
                 vec![
                     check!("[DP] (2F) Under Rock (Left)", regions::dungeons::desert::palace::SUBREGION, |p| p
                         .has_titans_mitt()),
@@ -149,6 +154,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalace3F,
             location(
                 "Desert Palace 3F",
+                "Desert Palace",
                 vec![
                     check!("[DP] (3F) Behind Falling Sand", regions::dungeons::desert::palace::SUBREGION, |p| p
                         .has_sand_rod()),
@@ -174,6 +180,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertPalaceExit3F,
             location(
                 "Desert Palace Exit 3F",
+                "Desert Palace",
                 None,
                 vec![edge!(DesertPalace3F, |p| p.has_sand_rod()), edge!(DesertZaganagaLedge)],
             ),
@@ -182,6 +189,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             DesertZaganagaLedge,
             location(
                 "Desert Zaganaga Ledge",
+                "Desert Palace",
                 None,
                 vec![
                     fast_travel_hyrule(),
@@ -195,6 +203,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             ZaganagasArena,
             location(
                 "Zaganaga's Arena",
+                "Desert Palace",
                 None,
                 vec![
                     fast_travel_lorule(),
@@ -212,6 +221,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             MiseryMireRewardBasket,
             location(
                 "Misery Mire Reward Basket",
+                "Desert Palace",
                 vec![
                     check!("[DP] Zaganaga", regions::dungeons::desert::palace::SUBREGION), // Do not use [DP] prefix
                     check!("[DP] Prize", regions::dungeons::desert::palace::SUBREGION),

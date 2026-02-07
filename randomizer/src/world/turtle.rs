@@ -16,6 +16,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockFoyer,
             location(
                 "Turtle Rock Foyer",
+                "Turtle Rock",
                 vec![],
                 vec![
                     edge!(TurtleRockFrontDoor),
@@ -27,6 +28,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockMain,
             location(
                 "Turtle Rock Main",
+                "Turtle Rock",
                 vec![
                     check!("[TR] (1F) Center", regions::dungeons::turtle::rock::SUBREGION),
                     old_check(
@@ -124,6 +126,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockLeftBalconyPath,
             location(
                 "Turtle Rock Left Balcony Path",
+                "Turtle Rock",
                 vec![],
                 vec![
                     old_path(TurtleRockMain, Some(|p| p.has_ice_rod()), None, None, None, None),
@@ -135,6 +138,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockLeftBalcony,
             location(
                 "[TR] Left Balcony",
+                "Turtle Rock",
                 vec![
                     check!("[TR] Left Balcony", regions::dungeons::turtle::rock::SUBREGION), // Do not use [TR] prefix
                 ],
@@ -145,6 +149,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockRightBalconyPath,
             location(
                 "Turtle Rock Right Balcony Path",
+                "Turtle Rock",
                 vec![],
                 vec![
                     old_path(TurtleRockMain, Some(|p| p.has_ice_rod()), None, None, None, None),
@@ -156,6 +161,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockRightBalcony,
             location(
                 "Turtle Rock Right Balcony",
+                "Turtle Rock",
                 vec![],
                 vec![fast_travel_lorule(), edge!(TurtleRockRightBalconyPath, |p| p.hearts(9.0))],
             ),
@@ -164,6 +170,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockBoss,
             location(
                 "Turtle Rock Boss",
+                "Turtle Rock",
                 vec![],
                 vec![old_path(TurtleRockPostBoss, Some(|p| p.can_defeat_grinexx()), None, None, None, None)],
             ),
@@ -172,6 +179,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TurtleRockPostBoss,
             location(
                 "Turtle Rock Post Boss",
+                "Turtle Rock",
                 vec![
                     check!("[TR] Grinexx", regions::dungeons::turtle::rock::SUBREGION),
                     check!("[TR] Prize", regions::dungeons::turtle::rock::SUBREGION),

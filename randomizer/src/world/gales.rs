@@ -16,6 +16,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             HouseOfGalesFoyer,
             location(
                 "House of Gales Entrance",
+                "House of Gales",
                 None,
                 vec![edge!(HouseOfGalesIsland), edge!(HouseOfGalesEast1F, |p| p.has_tornado_rod())],
             ),
@@ -24,6 +25,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             HouseOfGalesEast1F,
             location(
                 "House of Gales East 1F",
+                "House of Gales",
                 vec![
                     check!("[HG] (1F) Torches", regions::dungeons::house::gales::SUBREGION, |p| p.has_fire_source()),
                     check!("[HG] (1F) Switch Room", regions::dungeons::house::gales::SUBREGION),
@@ -45,6 +47,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             HouseOfGalesWest1F,
             location(
                 "House of Gales West 1F",
+                "House of Gales",
                 vec![
                     check!("[HG] (1F) West Room", regions::dungeons::house::gales::SUBREGION),
                     check!("[HG] (1F) West Room Secret", regions::dungeons::house::gales::SUBREGION, |p| p.can_merge()),
@@ -62,6 +65,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             HouseOfGales2F,
             location(
                 "House of Gales 2F",
+                "House of Gales",
                 vec![
                     check!("[HG] (2F) Narrow Ledge", regions::dungeons::house::gales::SUBREGION => {
                         normal: |p| p.can_merge() || p.has_boomerang() || p.has_hookshot(),
@@ -88,6 +92,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             HouseOfGales3F,
             location(
                 "House of Gales 3F",
+                "House of Gales",
                 vec![
                     check!("[HG] (3F) Fire Bubbles", regions::dungeons::house::gales::SUBREGION, |p| p
                         .has_fire_source()),
@@ -99,12 +104,18 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         ),
         (
             HouseOfGalesBoss,
-            location("House of Gales Boss", None, vec![edge!(HouseOfGalesPostBoss, |p| p.can_defeat_margomill())]),
+            location(
+                "House of Gales Boss",
+                "House of Gales",
+                None,
+                vec![edge!(HouseOfGalesPostBoss, |p| p.can_defeat_margomill())]
+            ),
         ),
         (
             HouseOfGalesPostBoss,
             location(
                 "Margomill Defeated",
+                "House of Gales",
                 vec![
                     check!("[HG] Margomill", regions::dungeons::house::gales::SUBREGION),
                     check!("[HG] Prize", regions::dungeons::house::gales::SUBREGION),

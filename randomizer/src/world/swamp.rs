@@ -15,6 +15,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             SwampPalaceOutside,
             location(
                 "Swamp Palace Outside",
+                "Lorule Castle Area",
                 vec![check!("Swamp Palace Weather Vane", regions::lorule::field::main::SUBREGION)],
                 vec![
                     edge!(LoruleCastleArea, |p| p.has_hookshot() || p.has_flippers() || p.has_bomb_flower()),
@@ -26,6 +27,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             SwampPalaceAntechamber,
             location(
                 "Swamp Palace Antechamber",
+                "Swamp Palace",
                 vec![],
                 vec![
                     edge!(SwampPalaceOutside),
@@ -47,6 +49,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             SwampPalaceFoyer,
             location(
                 "Swamp Palace Foyer",
+                "Swamp Palace",
                 vec![],
                 vec![
                     edge!(SwampPalaceAntechamber),
@@ -64,6 +67,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         (
             SwampPalaceMain,
             location(
+                "Swamp Palace",
                 "Swamp Palace",
                 vec![
                     check!("[SP] (B1) Center", regions::dungeons::swamp::palace::SUBREGION),
@@ -152,6 +156,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             SwampPalacePostBoss,
             location(
                 "Swamp Palace Post Boss",
+                "Swamp Palace",
                 vec![
                     check!("[SP] Arrghus", regions::dungeons::swamp::palace::SUBREGION),
                     check!("[SP] Prize", regions::dungeons::swamp::palace::SUBREGION),

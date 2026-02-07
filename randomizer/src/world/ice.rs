@@ -16,6 +16,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             IceRuinsFoyer,
             location(
                 "Ice Ruins Entrance",
+                "Ice Ruins",
                 vec![],
                 vec![edge!(LoruleDeathEastTop), edge!(IceRuins, |p| p.has_fire_rod())],
             ),
@@ -24,6 +25,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         (
             IceRuins,
             location(
+                "Ice Ruins",
                 "Ice Ruins",
                 vec![
                     check!("[IR] (1F) Hidden Chest", regions::dungeons::ice::ruins::SUBREGION, |p| p.has_ice_compass()),
@@ -92,12 +94,18 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         ),
         (
             IceRuinsBoss,
-            location("Ice Ruins Boss", vec![], vec![edge!(IceRuinsPostBoss, |p| p.can_defeat_dharkstare())]),
+            location(
+                "Ice Ruins Boss",
+                "Ice Ruins",
+                vec![],
+                vec![edge!(IceRuinsPostBoss, |p| p.can_defeat_dharkstare())]
+            ),
         ),
         (
             IceRuinsPostBoss,
             location(
                 "Ice Ruins Post Boss",
+                "Ice Ruins",
                 vec![
                     check!("[IR] Dharkstare", regions::dungeons::ice::ruins::SUBREGION),
                     check!("[IR] Prize", regions::dungeons::ice::ruins::SUBREGION),

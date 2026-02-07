@@ -205,12 +205,12 @@ pub(crate) use check;
 pub(crate) use edge;
 pub(crate) use goal;
 
-fn location<C, P>(name: &'static str, checks: C, paths: P) -> LocationNode
+fn location<C, P>(name: &'static str, hint_name: &'static str, checks: C, paths: P) -> LocationNode
 where
     C: Into<Option<Vec<Check>>>,
     P: Into<Option<Vec<Path>>>,
 {
-    LocationNode::new(name, checks.into(), paths.into())
+    LocationNode::new(name, hint_name, checks.into(), paths.into())
 }
 
 // TODO REMOVE

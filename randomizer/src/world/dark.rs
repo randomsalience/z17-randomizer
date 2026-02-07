@@ -17,6 +17,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             DarkPalaceFoyer,
             location(
                 "Dark Palace",
+                "Dark Palace",
                 vec![check!("[PD] (1F) Right Pit", regions::dungeons::dark::palace::SUBREGION, |p| p.has_bombs())],
                 vec![
                     edge!(DarkRuins),
@@ -29,6 +30,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             DarkPalaceSecondRoom,
             location(
                 "Dark Palace Second Room",
+                "Dark Palace",
                 vec![check!("[PD] (1F) Left Pit", regions::dungeons::dark::palace::SUBREGION, |p| p.can_merge()
                     || p.has_boomerang()
                     || p.has_hookshot())],
@@ -38,6 +40,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         (
             DarkPalaceMain,
             location(
+                "Dark Palace",
                 "Dark Palace",
                 vec![
                     check!("[PD] (1F) Switch Puzzle", regions::dungeons::dark::palace::SUBREGION),
@@ -56,6 +59,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             DarkPalaceLockedDoors,
             location(
                 "Dark Palace Locked Doors",
+                "Dark Palace",
                 vec![
                     check!("[PD] (1F) Fall From 2F", regions::dungeons::dark::palace::SUBREGION),
                     check!("[PD] (2F) Big Chest (Hidden)", regions::dungeons::dark::palace::SUBREGION),
@@ -74,12 +78,18 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         ),
         (
             DarkPalaceBoss,
-            location("Dark Palace Boss", None, vec![edge!(DarkPalaceAfterBoss, |p| p.can_defeat_gemesaur())]),
+            location(
+                "Dark Palace Boss",
+                "Dark Palace",
+                None,
+                vec![edge!(DarkPalaceAfterBoss, |p| p.can_defeat_gemesaur())]
+            ),
         ),
         (
             DarkPalaceAfterBoss,
             location(
                 "Dark Palace After Boss",
+                "Dark Palace",
                 vec![
                     check!("[PD] Gemesaur King", regions::dungeons::dark::palace::SUBREGION),
                     check!("[PD] Prize", regions::dungeons::dark::palace::SUBREGION),
