@@ -6,6 +6,12 @@ pub enum Location {
     // Hyrule -------------------
     HyruleBellTravel,
     HyruleField,
+    Irene,
+    KakarikoVillage,
+    LakeHyliaArea,
+    SanctuaryArea,
+    SouthernRuins,
+    EasternRuins,
     MaiamaiCave,
     EasternRuinsUpper,
     EasternRuinsEastLedge,

@@ -16,6 +16,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraFoyer,
             location(
                 "Tower of Hera Entrance",
+                "Tower of Hera",
                 vec![],
                 vec![
                     edge!(DeathMountainWestTop),
@@ -27,6 +28,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraBottom,
             location(
                 "Tower of Hera Bottom",
+                "Tower of Hera",
                 vec![
                     old_check(
                         LocationInfo::new("[TH] (1F) Outside", regions::dungeons::tower::hera::SUBREGION),
@@ -70,6 +72,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraMiddle,
             location(
                 "Tower of Hera Middle",
+                "Tower of Hera",
                 vec![
                     check!("[TH] (5F) Red/Blue Switches", regions::dungeons::tower::hera::SUBREGION),
                     check!("[TH] (6F) Right Mole", regions::dungeons::tower::hera::SUBREGION),
@@ -92,6 +95,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraTop,
             location(
                 "Tower of Hera Top",
+                "Tower of Hera",
                 vec![
                     check!("[TH] (7F) Outside (Ledge)", regions::dungeons::tower::hera::SUBREGION),
                     check!("[TH] (8F) Fairy Room", regions::dungeons::tower::hera::SUBREGION),
@@ -107,6 +111,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraBoss,
             location(
                 "Tower of Hera Boss",
+                "Tower of Hera",
                 vec![],
                 vec![old_path(TowerOfHeraPostBoss, Some(|p| p.can_defeat_moldorm()), None, None, None, None)],
             ),
@@ -115,6 +120,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             TowerOfHeraPostBoss,
             location(
                 "Tower of Hera Post Boss",
+                "Tower of Hera",
                 vec![
                     check!("[TH] Moldorm", regions::dungeons::tower::hera::SUBREGION),
                     check!("[TH] Prize", regions::dungeons::tower::hera::SUBREGION),

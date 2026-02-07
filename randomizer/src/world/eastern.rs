@@ -17,6 +17,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalaceFoyer,
             location(
                 "Eastern Palace",
+                "Eastern Palace",
                 vec![check!("[EP] (1F) Merge Chest", regions::dungeons::eastern::palace::SUBREGION, |p| p.can_merge()
                     && p.has_eastern_compass())],
                 vec![
@@ -32,6 +33,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalace1F,
             location(
                 "Eastern Palace 1F",
+                "Eastern Palace",
                 vec![
                     check!("[EP] (1F) Left Door Chest", regions::dungeons::eastern::palace::SUBREGION => {
                         normal: |p| p.can_hit_far_switch() || p.has_nice_ice_rod(),
@@ -54,6 +56,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalaceMiniboss,
             location(
                 "Eastern Palace Miniboss",
+                "Eastern Palace",
                 None,
                 vec![edge!(EasternPalace1F, |p| p.can_attack()), edge!(EasternPalace2F, |p| p.can_attack())],
             ),
@@ -62,6 +65,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalace2F,
             location(
                 "Eastern Palace 2F",
+                "Eastern Palace",
                 vec![
                     check!("[EP] (2F) Defeat Popos", regions::dungeons::eastern::palace::SUBREGION, |p| p.can_attack()),
                     check!("[EP] (2F) Ball Room", regions::dungeons::eastern::palace::SUBREGION),
@@ -90,6 +94,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalaceBoss,
             location(
                 "Eastern Palace 3F",
+                "Eastern Palace",
                 None,
                 vec![edge!(EasternPalacePostYuga => {
                     normal: |p| p.has_bow(),
@@ -107,6 +112,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalacePostYuga,
             location(
                 "Eastern Palace Post Yuga",
+                "Eastern Palace",
                 vec![
                     check!("[EP] Yuga (1)", regions::dungeons::eastern::palace::SUBREGION),
                     check!("[EP] Yuga (2)", regions::dungeons::eastern::palace::SUBREGION),
@@ -120,6 +126,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             EasternPalaceEscape,
             location(
                 "Eastern Palace Escape",
+                "Eastern Palace",
                 vec![
                     check!("[EP] (3F) Escape Chest", regions::dungeons::eastern::palace::SUBREGION),
                     check!("[EP] (1F) Escape Chest", regions::dungeons::eastern::palace::SUBREGION),

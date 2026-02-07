@@ -16,6 +16,7 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
             ThievesHideoutB1,
             location(
                 "Thieves' Hideout",
+                "Thieves' Hideout",
                 vec![
                     /* B1 */
                     check!("[TT] (B1) Grate Chest", regions::dungeons::thieves::hideout::SUBREGION),
@@ -110,12 +111,18 @@ pub(crate) fn graph() -> HashMap<Location, LocationNode> {
         ),
         (
             ThievesBoss,
-            location("Thieves' Hideout Boss", None, vec![edge!(ThievesPostBoss, |p| p.can_merge() && p.can_attack())]),
+            location(
+                "Thieves' Hideout Boss",
+                "Thieves' Hideout",
+                None,
+                vec![edge!(ThievesPostBoss, |p| p.can_merge() && p.can_attack())]
+        ),
         ),
         (
             ThievesPostBoss,
             location(
                 "Thieves' Hideout Post Boss",
+                "Thieves' Hideout",
                 vec![
                     check!("[TT] Stalblind", regions::dungeons::thieves::hideout::SUBREGION),
                     check!("[TT] Prize", regions::dungeons::thieves::hideout::SUBREGION),

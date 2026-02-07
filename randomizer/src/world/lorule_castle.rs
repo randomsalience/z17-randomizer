@@ -18,6 +18,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleCastle1F,
             location(
                 "Lorule Castle 1F",
+                "Lorule Castle",
                 None,
                 vec![
                     edge!(LoruleCastleArea),
@@ -36,6 +37,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleCastleEastLedge1F,
             location(
                 "Lorule Castle East Ledge 1F",
+                "Lorule Castle",
                 vec![check!("[LC] (1F) Ledge", regions::dungeons::lorule::castle::SUBREGION)],
                 vec![edge!(LoruleCastle1F, |p| p.can_merge())],
             ),
@@ -44,6 +46,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleCastleCenter1F,
             location(
                 "Lorule Castle 1F Center",
+                "Lorule Castle",
                 vec![check!("[LC] (1F) Center", regions::dungeons::lorule::castle::SUBREGION)],
                 vec![
                     edge!(LoruleCastle1F),
@@ -57,6 +60,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleCastle2F3F,
             location(
                 "Lorule Castle 2F 3F",
+                "Lorule Castle",
                 vec![
                     check!("[LC] (2F) Near Torches", regions::dungeons::lorule::castle::SUBREGION),
                     check!("[LC] (2F) Hidden Path", regions::dungeons::lorule::castle::SUBREGION => {
@@ -107,6 +111,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             LoruleCastle4F5F,
             location(
                 "Lorule Castle 4F 5F",
+                "Lorule Castle",
                 vec![
                     check!("[LC] Lamp Trial", regions::dungeons::lorule::castle::SUBREGION => {
                         normal: |p| p.has_fire_source(),
@@ -135,6 +140,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             HildasStudy,
             location(
                 "Hilda's Study",
+                "Lorule Castle",
                 None,
                 vec![
                     edge!(LoruleCastle2F3F, |p| p.is_trials_door_open_from_both_sides() && p.hearts(13.0)),
@@ -149,6 +155,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
             ThroneRoom,
             location(
                 "Throne Room",
+                "Lorule Castle",
                 vec![check!("[LC] Zelda", regions::dungeons::lorule::castle::SUBREGION => {
                     normal: |p| p.has_yuganon_requirement() && (p.has_master_sword() || (p.swordless_mode() && p.has_net())),
                     hell: |p| p.has_yuganon_requirement() && p.has_sword(),
@@ -169,6 +176,6 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                 })],
             ),
         ),
-        (SacredRealm, location("Sacred Realm", vec![goal!("Sacred Realm", Goal::Triforce)], None)),
+        (SacredRealm, location("Sacred Realm", "Sacred Realm", vec![goal!("Sacred Realm", Goal::Triforce)], None)),
     ])
 }

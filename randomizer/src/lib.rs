@@ -671,7 +671,7 @@ impl SeedInfo {
     pub fn get_region_graph(&self) -> DashMap<String, (String, Vec<String>, Vec<String>)> {
         self.world_graph.iter().map(|(location, location_node)|
             (location.to_string(), (
-                location_node.get_name().to_string(),
+                location_node.get_hint_name().to_string(),
                 match location_node.get_checks() {
                     None => Vec::new(),
                     Some(checks) => checks.iter().map(|check| check.get_name().to_string()).collect(),
