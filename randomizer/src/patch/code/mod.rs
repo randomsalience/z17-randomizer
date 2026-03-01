@@ -355,6 +355,58 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     code.rodata().declare(name_bytes); // username padded to 0x40 bytes
     let received_items_counter = code.rodata().declare([0xff, 0xff, 0xff, 0xff]);
     let framework_pointer = code.rodata().declare([0, 0, 0, 0]);
+    let death_link_flag = code.rodata().declare([0, 0, 0, 0]);
+
+    let handle_death_link = code.text().define([
+        push([R0, R1, R2, R3, R4, LR]),
+        
+
+        // Get DeathLink flag
+        ldr(R4, death_link_flag),
+        ldr(R0, (R4, 0)),
+        cmp(R0, 0),         //if DeathLink flag not set
+        pop([R0, R1, R2, R3, R4, PC]).eq(), //leave
+        // Clear flag
+        mov(R0, 0),
+        str_(R0, (R4, 0)),
+
+        // Get PlayerObject
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0)),
+        cmp(R0, 0),
+        pop([R0, R1, R2, R3, R4, PC]).eq(), //if error, leave
+
+        ldr(R4, (R0, 0x10)),   // pPlayerObject
+        cmp(R4, 0),
+        pop([R0, R1, R2, R3, R4, PC]).eq(), //if error, leave
+
+        // applyHeartDelta(pPlayerObject, -80, 1)
+        // applyHeartDelta(pointer, damage (in quarter heart), some flag?)
+        mov(R0, R4),
+        mov(R1, 0),      
+        sub(R1, R1, 80), //- 20 hearts
+        mov(R2, 1),
+        bl(0x001DD48C),
+
+        // Get PlayerController
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0)),
+        ldr(R0, (R0, 0x14)),
+        ldr(R0, (R0, 0x48)),
+        cmp(R0, 0), 
+        pop([R0, R1, R2, R3, R4, PC]).eq(), //if error, leave
+
+        // Build minimal damage struct
+        mov(R1, 0x00110000),    
+        // damage[0]=0, damage[1]=0x11
+        // 0x11 = fall damage, doesn't use other values in struct, not affected by progressive mail level,
+        // and makes a funny noise
+        
+        // call onDamage(controller, &damageStruct) to actually apply the damage done with applyHeartDelta and handle death
+        bl(0x00363A0C),
+
+        pop([R0, R1, R2, R3, R4, PC]),
+    ]);
 
     // Store the framework pointer for use by the client
     let store_framework_pointer = code.text().define([
@@ -414,8 +466,9 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         b(0x349214),
     ]);
     let receive_items = code.text().define([
-        // Return to normal function if player state is not 0 (standing) or 1 (walking)
         push(&[R0, R1, R4, R5, R6, LR]),
+        bl(handle_death_link),
+        // Return to normal function if player state is not 0 (standing) or 1 (walking)
         cmp(R1, 0x0),
         cmp(R1, 0x1).ne(),
         b(receive_items_skip).ne(),
