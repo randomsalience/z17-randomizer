@@ -416,26 +416,26 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                 "Mother Maiamai Cave",
                 "Mother Maiamai",
                 vec![
-                    check!("Maiamai Bow Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Bow Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(0)
                         && p.has_bow()),
-                    check!("Maiamai Boomerang Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Boomerang Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(1)
                         && p.has_boomerang()),
-                    check!("Maiamai Hookshot Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Hookshot Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(2)
                         && p.has_hookshot()),
-                    check!("Maiamai Hammer Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Hammer Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(3)
                         && p.has_hammer()),
-                    check!("Maiamai Bombs Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Bombs Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(4)
                         && p.has_bombs()),
-                    check!("Maiamai Fire Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Fire Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(5)
                         && p.has_fire_rod()),
-                    check!("Maiamai Ice Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Ice Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(6)
                         && p.has_ice_rod()),
-                    check!("Maiamai Tornado Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p
-                        .has_90_maiamai()
+                    check!("Maiamai Tornado Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(7)
                         && p.has_tornado_rod()),
-                    check!("Maiamai Sand Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_90_maiamai()
+                    check!("Maiamai Sand Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, |p| p.has_enough_maiamai(8)
                         && p.has_sand_rod()),
-                    check!("100 Maiamai", regions::hyrule::lake::cave::SUBREGION, |p| p.has_bombs()
+                    check!("Maiamai Great Spin", regions::hyrule::lake::cave::SUBREGION, |p| p.has_max_maiamai()
+                        && p.has_bombs()
                         && p.has_boomerang()
                         && p.has_bow()
                         && p.has_fire_rod()
@@ -443,8 +443,7 @@ pub(crate) fn graph(crack_map: &CrackMap) -> HashMap<Location, LocationNode> {
                         && p.has_hookshot()
                         && p.has_ice_rod()
                         && p.has_sand_rod()
-                        && p.has_tornado_rod()
-                        && p.has_100_maiamai()),
+                        && p.has_tornado_rod()),
                 ],
                 vec![edge!(HyruleField)],
             ),

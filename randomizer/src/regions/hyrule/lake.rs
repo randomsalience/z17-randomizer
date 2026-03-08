@@ -34,7 +34,7 @@ crate::region! {
             "Maiamai Ice Rod Upgrade": ItemIceRodLv2 @None(),
             "Maiamai Tornado Rod Upgrade": ItemTornadeRodLv2 @None(),
             "Maiamai Sand Rod Upgrade": ItemSandRodLv2 @None(),
-            "100 Maiamai": SpecialMove @Event(CaveLight/FieldLight_35_Kinsta[23]),
+            "Maiamai Great Spin": SpecialMove @Event(CaveLight/FieldLight_35_Kinsta[23]),
         ],
     },
 }

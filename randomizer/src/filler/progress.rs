@@ -318,12 +318,20 @@ impl<'s> Progress<'s> {
         self.has_amount(amount, [Item::OreRed, Item::OreGreen, Item::OreBlue, Item::OreYellow])
     }
 
-    pub fn has_90_maiamai(&self) -> bool {
-        self.has_maiamai(90)
+    pub fn has_enough_maiamai(&self, slot: usize) -> bool {
+        if self.seed_info.is_archipelago() && self.seed_info.settings.shuffle_maiamai_rewards {
+            self.has_maiamai(self.seed_info.mother_maiamai_costs[slot])
+        } else {
+            self.has_maiamai(90)
+        }
     }
 
-    pub fn has_100_maiamai(&self) -> bool {
-        self.has_maiamai(100)
+    pub fn has_max_maiamai(&self) -> bool {
+        if self.seed_info.is_archipelago() && self.seed_info.settings.shuffle_maiamai_rewards {
+            self.has_maiamai(*self.seed_info.mother_maiamai_costs.iter().max().unwrap())
+        } else {
+            self.has_maiamai(100)
+        }
     }
 
     pub fn has_maiamai(&self, amount: u8) -> bool {

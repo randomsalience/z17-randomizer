@@ -65,6 +65,11 @@ pub struct Settings {
     #[pyo3(get, set)]
     pub dungeon_prize_shuffle: bool,
 
+    /// Shuffle Mother Maiamai items
+    #[serde(default)]
+    #[pyo3(get, set)]
+    pub shuffle_maiamai_rewards: bool,
+
     /// Maiamai Limit
     #[serde(default = "fifty")]
     #[pyo3(get, set)]

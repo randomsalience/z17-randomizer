@@ -1,7 +1,7 @@
 use super::Patcher;
 use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
-use crate::patch::code::arm::data::{add, sub, cmp, mov};
+use crate::patch::code::arm::data::{add, sub, cmp, mov, mul};
 use crate::patch::code::arm::ls::{ldr, ldrb, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::Register::*;
@@ -202,6 +202,9 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     night_mode(&mut code, &seed_info.settings);
     show_hint_ghosts(&mut code, &seed_info.settings);
     mother_maiamai(&mut code, &seed_info.layout, &item_names);
+    if seed_info.is_archipelago() && seed_info.settings.shuffle_maiamai_rewards {
+        archipelago_mother_maiamai(&mut code, &seed_info.mother_maiamai_costs);
+    }
     pause_menu_warp(&mut code);
     purple_potion_bottles(&mut code, &seed_info.settings);
     // golden_bees(&mut code);
@@ -808,6 +811,98 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
     code.patch(0x46d858, [bl(fn_get_maiamai_item_name)]);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+
+// Patches for Mother Maiamai in Archipelago with randomized items
+fn archipelago_mother_maiamai(code: &mut Code, mother_maiamai_costs: &[u8]) {
+    // Alwas show upgrade dialog if you have items that can be upgraded
+    code.patch(0x30fe64, [b(0x30fef0)]);
+
+    // Skip maiamai walk animation and reduction of maiamai count
+    code.patch(0x30fb00, [mov(R1, 0xc)]);
+
+    // Skip Great Spin
+    code.patch(0x30fda4, [b(0x30fef0)]);
+    code.patch(0x30fec4, [b(0x30fef0)]);
+
+    // Show correct item names
+    let maiamai_item_names = code.rodata().declare(
+        (0..9)
+            .flat_map(|i| { format!("item_name_mm{}\0", i).into_bytes() })
+            .collect::<Vec<_>>()
+    );
+
+    let get_maiamai_item_name = code.text().define([
+        push([R1, LR]),
+        mov(R0, 14),
+        mul(R0, R4, R0),
+        ldr(R1, maiamai_item_names),
+        add(R0, R1, R0),
+        pop([R1, PC]),
+    ]);
+    code.patch(0x46d858, [bl(get_maiamai_item_name)]);
+
+    let maiamai_cost_table = code.rodata().declare(mother_maiamai_costs);
+    let reverse_slot_table = code.rodata().declare([0xff, 0xff, 4, 1, 0, 0xff, 3, 8, 5, 6, 7, 2]);
+
+    // Prevent getting items if you don't have enough maiamai
+    // Adds a case 7 to the MSBF branch function
+    let check_maiamai = code.text().define([
+        cmp(R3, 7),
+        b(0x30fd50).ne(),
+        // R0 = total maiamai count
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0)),
+        bl(0x556a2c),
+        // R2 = item slot
+        ldr(R1, reverse_slot_table),
+        ldr(R2, (R4, 0xad8)),
+        ldrb(R2, (R1, R2)),
+        // R1 = maiamai cost
+        ldr(R1, maiamai_cost_table),
+        ldrb(R1, (R1, R2)),
+        // compare count to cost
+        cmp(R0, R1),
+        b(0x30ff04).ge(),
+        b(0x30fef0),
+    ]);
+    code.patch(0x30fd4c, [b(check_maiamai)]);
+
+    // Gray out upgrades that cannot be purchased
+    let set_alpha = code.text().define([
+        push([R0, R2]),
+        // R0 = total maiamai count
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0)),
+        bl(0x556a2c),
+        // R1 = maiamai cost
+        ldr(R2, reverse_slot_table),
+        ldrb(R2, (R2, R7)),
+        ldr(R1, maiamai_cost_table),
+        ldrb(R1, (R1, R2)),
+        // compare count to cost
+        cmp(R0, R1),
+        // select alpha value
+        mov(R0, 0x80).lt(),
+        mov(R0, 0xff).ge(),
+        // set alpha
+        strb(R0, (R5, 0x45)),
+        strb(R0, (R5, 0x46)),
+        // return
+        pop([R0, R2]),
+        mov(R8, 0),
+        b(0x46da18),
+    ]);
+    code.patch(0x46da14, [b(set_alpha)]);
+
+    let set_cancel_alpha = code.text().define([
+        mov(R1, 0xff),
+        strb(R1, (R5, 0x45)),
+        strb(R1, (R5, 0x46)),
+        ldr(R0, (R5, 0)),
+        b(0x46d9b4),
+    ]);
+    code.patch(0x46d9b0, [b(set_cancel_alpha)]);
 }
 
 fn pause_menu_warp(code: &mut Code) {

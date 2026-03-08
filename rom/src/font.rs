@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use bytey::*;
+use log::warn;
 use crate::{Error, Result};
 
 pub struct Font {
@@ -96,8 +97,16 @@ impl Font {
         Ok(Font { glyph_widths, code_map })
     }
 
-    pub fn wrap(&self, text: &str) -> Result<String> {
-        const WRAP_WIDTH: usize = 360;
+    fn width(&self, text: &str) -> Result<usize> {
+        let mut width = 0;
+        for code in text.encode_utf16() {
+            let glyph = self.code_map.get(&code).ok_or(Error::new(format!("Invalid character code 0x{:X}.", code)))?;
+            width += *self.glyph_widths.get(glyph).ok_or(Error::new(format!("Invalid glyph 0x{:X}.", glyph)))? as usize;
+        }
+        Ok(width)
+    }
+
+    pub fn wrap(&self, text: &str, max_width: usize) -> Result<String> {
         let mut result = Vec::new();
         let mut word = Vec::new();
         let mut width = 0;
@@ -112,7 +121,7 @@ impl Font {
             word_width += *self.glyph_widths.get(glyph).ok_or(Error::new(format!("Invalid glyph 0x{:X}.", glyph)))? as usize;
 
             if code == 0x20 || code == 0x2d || code == 0x5f { // space, hyphen, underscore
-                if width + word_width < WRAP_WIDTH {
+                if width + word_width < max_width {
                     result.append(&mut word);
                     width += word_width;
                 } else {
@@ -124,7 +133,7 @@ impl Font {
             }
         }
         
-        if width + word_width < WRAP_WIDTH {
+        if width + word_width < max_width {
             result.append(&mut word);
         } else {
             result.push(0xa); // newline
@@ -132,5 +141,53 @@ impl Font {
         }
 
         Ok(String::from_utf16(&result).unwrap())
+    }
+
+    pub fn truncate_mid(&self, start: &str, end: &str, max_width: usize) -> Result<String> {
+        let start_width = self.width(start)?;
+        let end_width = self.width(end)?;
+        if start_width + end_width < max_width {
+            return Ok(format!("{}{}", start, end));
+        }
+
+        let new_end = format!("...{}", end);
+        let new_end_width = self.width(&new_end)?;
+
+        let mut width = 0;
+        let start_chars: Vec<_> = start.encode_utf16().collect();
+        let mut char_count = 0;
+        while width + new_end_width < max_width && char_count < start_chars.len() {
+            let code = start_chars[char_count];
+            char_count += 1;
+            let glyph = self.code_map.get(&code).ok_or(Error::new(format!("Invalid character code 0x{:X}.", code)))?;
+            width += *self.glyph_widths.get(glyph).ok_or(Error::new(format!("Invalid glyph 0x{:X}.", glyph)))? as usize;
+        }
+
+        if char_count > 0 {
+            char_count -= 1;
+        }
+        let new_start = String::from_utf16(&start_chars[0..char_count]).unwrap();
+
+        Ok(format!("{}{}", &new_start, &new_end))
+    }
+
+    pub fn try_wrap(&self, text: &str, max_width: usize) -> String {
+        match self.wrap(text, max_width) {
+            Ok(wrapped) => wrapped,
+            Err(err) => {
+                warn!("Error wrapping text: {}", err.to_string());
+                text.to_string()
+            }
+        }
+    }
+
+    pub fn try_truncate_mid(&self, start: &str, end: &str, max_width: usize) -> String {
+        match self.truncate_mid(start, end, max_width) {
+            Ok(truncated) => truncated,
+            Err(err) => {
+                warn!("Error truncating text: {}", err.to_string());
+                format!("{}{}", start, end)
+            }
+        }
     }
 }

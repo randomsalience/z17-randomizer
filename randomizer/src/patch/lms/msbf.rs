@@ -24,7 +24,8 @@ pub fn patch(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     patch_hyrule_castle_zelda(patcher)?;
     patch_impa(patcher)?;
     patch_lorule_castle_requirements(patcher, settings)?;
-    patch_mother_maiamai(patcher)?;
+    let mother_maiamai_archipelago = seed_info.is_archipelago() && seed_info.settings.shuffle_maiamai_rewards;
+    patch_mother_maiamai(patcher, mother_maiamai_archipelago)?;
     patch_papa_girl(patcher)?;
     patch_ravio_shop(patcher)?;
     patch_rosso(patcher)?;
@@ -266,7 +267,7 @@ fn patch_turtles(patcher: &mut Patcher) -> Result<()> {
 }
 
 /// Mother Maiamai Cave and Rewards
-fn patch_mother_maiamai(patcher: &mut Patcher) -> Result<()> {
+fn patch_mother_maiamai(patcher: &mut Patcher, archipelago: bool) -> Result<()> {
     apply!(patcher,
         CaveLight/FieldLight_35_Kinsta {
 
@@ -336,6 +337,21 @@ fn patch_mother_maiamai(patcher: &mut Patcher) -> Result<()> {
             // [144 into_branch] switch [[0] => 80, [1] => 80,], // Skip 142, 143
         },
     );
+
+    if archipelago {
+        apply!(patcher,
+            CaveLight/FieldLight_35_Kinsta {
+                // Use 133 (confirmation dialog) to instead check maiamai count
+                [131] => 133,
+                [133 into_branch] each [
+                    command(0),
+                    arg1(0),
+                    value(7),
+                    switch [[0] => 45, [1] => 47,],
+                ],
+            },
+        );
+    }
 
     Ok(())
 }

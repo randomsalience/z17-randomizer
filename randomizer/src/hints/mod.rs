@@ -498,7 +498,7 @@ fn generate_maiamai_hints(
     let mut available_maiamai_checks = vec![
         "Maiamai Bow Upgrade", "Maiamai Boomerang Upgrade", "Maiamai Hookshot Upgrade", "Maiamai Hammer Upgrade",
         "Maiamai Bombs Upgrade", "Maiamai Fire Rod Upgrade", "Maiamai Ice Rod Upgrade", "Maiamai Tornado Rod Upgrade",
-        "Maiamai Sand Rod Upgrade", "100 Maiamai",
+        "Maiamai Sand Rod Upgrade", "Maiamai Great Spin",
     ];
 
     // Handle exclusions

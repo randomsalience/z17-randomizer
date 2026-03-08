@@ -242,6 +242,7 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         logic_mode,
         dark_rooms_lampless,
         dungeon_prize_shuffle,
+        shuffle_maiamai_rewards: false,
         maiamai_limit,
         maiamai_madness,
         nice_items,
