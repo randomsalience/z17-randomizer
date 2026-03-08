@@ -3,7 +3,8 @@ use crate::filler::tower_stage::TowerStage;
 use crate::filler::location::Location;
 use crate::filler::progress::Progress;
 use crate::filler::trials::TrialsConfig;
-use crate::filler::{cracks, text, treacherous_tower, trials, vanes};
+use crate::filler::{cracks, mother_maiamai, text, treacherous_tower, trials, vanes};
+use crate::filler::filler_item::Item::LetterInABottle;
 use crate::world::WorldGraph;
 use crate::{
     constants::VERSION,
@@ -23,7 +24,6 @@ use patch::Patcher;
 use path_absolutize::*;
 use pyo3::prelude::*;
 use rand::{rngs::StdRng, SeedableRng};
-use regex::Regex;
 use regions::Subregion;
 use rom::Rom;
 use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
@@ -311,13 +311,6 @@ pub struct Text {
     credits: String,
 }
 
-/// Strip all but certain characters from a string
-fn sanitize(string: &str) -> String {
-    let to_space = Regex::new(r"[_]").unwrap();
-    let remove = Regex::new(r"[^A-Za-z0-9'\(\) ]").unwrap();
-    remove.replace_all(&to_space.replace_all(string, " "), "").to_string()
-}
-
 #[derive(Serialize, Debug, Clone)]
 #[pyclass]
 pub struct ArchipelagoItem {
@@ -363,7 +356,7 @@ impl ArchipelagoInfo {
     pub fn get_item_name(&self, location_name: &str) -> Result<String> {
         self.items
             .get(location_name)
-            .map(|item| sanitize(&item.name))
+            .map(|item| item.name.clone())
             .ok_or(Error::internal(format!("Patch file does not contain an item for location {}", location_name)))
     }
 }
@@ -415,6 +408,9 @@ pub struct SeedInfo {
 
     #[serde(skip_deserializing, skip_serializing)]
     pub world_graph: WorldGraph,
+
+    #[serde(skip_deserializing)]
+    pub mother_maiamai_costs: Vec<u8>,
 }
 
 impl SeedInfo {
@@ -437,6 +433,18 @@ impl SeedInfo {
             default
         }
     }
+
+    pub fn get_item_name(&self, loc_name: &'static str, subregion: &'static Subregion) -> Result<String> {
+        let layout_item = self.layout.get_unsafe(loc_name, subregion);
+        if let Some(info) = &self.archipelago_info {
+            match layout_item {
+                Randomizable::Item(LetterInABottle) => info.get_item_name(loc_name),
+                _ => Ok(layout_item.as_str().to_string()),
+            }
+        } else {
+            Ok(layout_item.as_str().to_string())
+        }
+    }
 }
 
 impl Default for SeedInfo {
@@ -457,6 +465,7 @@ impl Default for SeedInfo {
             world_graph: Default::default(),
             treacherous_tower_floors: Default::default(),
             text: Default::default(),
+            mother_maiamai_costs: Default::default(),
         }
     }
 }
@@ -604,6 +613,7 @@ fn calculate_seed_info(seed: u32, settings: Settings, hash: SeedHash, rng: &mut 
     let trials_config = trials::configure(rng, &settings)?;
     let treacherous_tower_floors = treacherous_tower::choose_floors(&settings, rng)?;
     let world_graph = world::build_world_graph(&crack_map);
+    let mother_maiamai_costs = mother_maiamai::choose_mother_maiamai_costs(&settings, rng);
 
     let mut seed_info = SeedInfo {
         seed,
@@ -621,6 +631,7 @@ fn calculate_seed_info(seed: u32, settings: Settings, hash: SeedHash, rng: &mut 
         world_graph,
         text,
         treacherous_tower_floors,
+        mother_maiamai_costs,
     };
 
     // Check Map and Item Pools
@@ -646,6 +657,7 @@ pub fn randomize_pre_fill(seed: u32, settings: Settings, archipelago_info: Optio
     let trials_config = trials::configure(rng, &settings).unwrap();
     let treacherous_tower_floors = treacherous_tower::choose_floors(&settings, rng).unwrap();
     let world_graph = world::build_world_graph(&crack_map);
+    let mother_maiamai_costs = mother_maiamai::choose_mother_maiamai_costs(&settings, rng);
 
     SeedInfo {
         seed,
@@ -663,6 +675,7 @@ pub fn randomize_pre_fill(seed: u32, settings: Settings, archipelago_info: Optio
         world_graph,
         text,
         treacherous_tower_floors,
+        mother_maiamai_costs,
     }
 }
 

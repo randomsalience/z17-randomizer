@@ -23,6 +23,7 @@ mod loading_zone_pair;
 pub mod location;
 pub mod location_node;
 pub mod logic;
+pub mod mother_maiamai;
 pub mod path;
 pub mod progress;
 pub(crate) mod text;
@@ -330,7 +331,7 @@ fn handle_exclusions(rng: &mut StdRng, seed_info: &mut SeedInfo, check_map: &mut
 
     // Always exclude 100 Maiamai check unless the Maiamai Limit is explicitly set to 100
     if seed_info.settings.maiamai_limit < 100 {
-        seed_info.full_exclusions.insert("100 Maiamai".to_string());
+        seed_info.full_exclusions.insert("Maiamai Great Spin".to_string());
     }
 
     // Exclude all Maiamai checks when the Maiamai Limit is (effectively) zero.

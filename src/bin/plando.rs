@@ -69,6 +69,7 @@ fn main() {
         hints: Default::default(),
         trials_config: Default::default(),
         world_graph: Default::default(),
+        mother_maiamai_costs: Default::default(),
     };
 
     seed_info.settings.log_settings();
@@ -186,6 +187,7 @@ fn plando_settings() -> Settings {
         logic_mode: LogicMode::Normal,
         dark_rooms_lampless: false,
         dungeon_prize_shuffle: true,
+        shuffle_maiamai_rewards: false,
         maiamai_limit: 50,
         maiamai_madness: false,
         nice_items: NiceItems::Off,
@@ -409,7 +411,7 @@ fn build_layout() -> Layout {
     layout.set_item("Maiamai Ice Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, IceRod02);
     layout.set_item("Maiamai Tornado Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, TornadoRod02);
     layout.set_item("Maiamai Sand Rod Upgrade", regions::hyrule::lake::cave::SUBREGION, SandRod02);
-    layout.set_item("100 Maiamai", regions::hyrule::lake::cave::SUBREGION, GreatSpin);
+    layout.set_item("Maiamai Great Spin", regions::hyrule::lake::cave::SUBREGION, GreatSpin);
 
     layout.set_item("Ice Rod Cave", regions::hyrule::lake::hylia::SUBREGION, Empty);
     layout.set_item("Lake Hylia Dark Cave", regions::hyrule::lake::hylia::SUBREGION, Empty);

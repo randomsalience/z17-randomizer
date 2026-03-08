@@ -1,14 +1,14 @@
 use crate::filler::filler_item::Item::{
     PendantOfCourage, PendantOfPower, PendantOfWisdom, SageGulley, SageImpa, SageIrene, SageOren, SageOsfala,
-    SageRosso, SageSeres, LetterInABottle,
+    SageRosso, SageSeres,
 };
 use crate::{
     hints::{formatting::*, Hint},
     patch::messages::{hint_ghosts::HintGhost, msbt::load_msbt},
-    regions, DashMap, Patcher, Randomizable, Result, SeedInfo,
+    regions, DashMap, Patcher, Result, SeedInfo,
 };
 use game::Course::{self, *};
-use log::{info, warn};
+use log::info;
 use macros::fail;
 
 mod hint_ghosts;
@@ -87,6 +87,7 @@ fn patch_pause_screen(patcher: &mut Patcher) -> Result<()> {
 fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     // Item names in textboxes
     let mut item_name = load_msbt(patcher, LanguageBoot, "ItemName")?;
+    let mut item_name_upper = load_msbt(patcher, LanguageBoot, "ItemNameUpper")?;
 
     // Repurpose unused strings as Rupee names so they show up in the shop
     // FIXME - This is hacky, add these as new strings when size problem is fixed
@@ -104,19 +105,30 @@ fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
         // Repurpose Letter in a Bottle as Archipelago Item
         item_name.set("item_name_messagebottle", "Archipelago Item");
 
+        let font = patcher.game.font().unwrap();
+
         // Ravio items
-        item_name.set("item_name_icerod_LV2", &info.get_item_name("Ravio's Shop (1)")?);
-        item_name.set("item_name_hookshot_LV2", &info.get_item_name("Ravio's Shop (2)")?);
-        item_name.set("item_name_tornaderod_LV2", &info.get_item_name("Ravio's Shop (3)")?);
-        item_name.set("item_name_bomb_LV2", &info.get_item_name("Ravio's Shop (4)")?);
-        item_name.set("item_name_bow_LV2", &info.get_item_name("Ravio's Shop (5)")?);
-        item_name.set("item_name_sandrod_LV2", &info.get_item_name("Ravio's Shop (6)")?);
-        item_name.set("item_name_hammer_LV2", &info.get_item_name("Ravio's Shop (7)")?);
-        item_name.set("item_name_boomerang_LV2", &info.get_item_name("Ravio's Shop (8)")?);
-        item_name.set("item_name_firerod_LV2", &info.get_item_name("Ravio's Shop (9)")?);
+        item_name.set("item_name_icerod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (1)")?, 360));
+        item_name.set("item_name_hookshot_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (2)")?, 360));
+        item_name.set("item_name_tornaderod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (3)")?, 360));
+        item_name.set("item_name_bomb_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (4)")?, 360));
+        item_name.set("item_name_bow_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (5)")?, 360));
+        item_name.set("item_name_sandrod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (6)")?, 360));
+        item_name.set("item_name_hammer_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (7)")?, 360));
+        item_name.set("item_name_boomerang_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (8)")?, 360));
+        item_name.set("item_name_firerod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (9)")?, 360));
+
+        // Mother Maiamai Items
+        let mm_items = ["Bow", "Boomerang", "Hookshot", "Hammer", "Bombs", "Fire Rod", "Ice Rod", "Tornado Rod", "Sand Rod"];
+        for i in 0..9 {
+            let item = info.get_item_name(&format!("Maiamai {} Upgrade", mm_items[i]))?;
+            let name = font.try_truncate_mid(&item, &format!(" ({})", seed_info.mother_maiamai_costs[i]), 240);
+            item_name_upper.add(&format!("item_name_mm{}", i), &name);
+        }
     }
 
     patcher.update(item_name.dump())?;
+    patcher.update(item_name_upper.dump())?;
 
     // Item descriptions when picked up
     // let mut event_item_get = load_msbt(patcher, LanguageBoot, "EventItemGet")?;
@@ -327,25 +339,8 @@ fn patch_cross_old_man(patcher: &mut Patcher) -> Result<()> {
 
 /// Street Merchant - Shorten text & show the item names
 fn patch_street_merchant(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
-    let item_left = seed_info.layout.get_unsafe("Street Merchant (Left)", regions::hyrule::kakariko::village::SUBREGION);
-    let item_name_left = if let Some(info) = &seed_info.archipelago_info {
-        match item_left {
-            Randomizable::Item(LetterInABottle) => info.get_item_name("Street Merchant (Left)")?,
-            _ => item_left.as_str().to_string(),
-        }
-    } else {
-        item_left.as_str().to_string()
-    };
-
-    let item_right = seed_info.layout.get_unsafe("Street Merchant (Right)", regions::hyrule::kakariko::village::SUBREGION);
-    let item_name_right = if let Some(info) = &seed_info.archipelago_info {
-        match item_right {
-            Randomizable::Item(LetterInABottle) => info.get_item_name("Street Merchant (Right)")?,
-            _ => item_right.as_str().to_string(),
-        }
-    } else {
-        item_right.as_str().to_string()
-    };
+    let item_name_left = seed_info.get_item_name("Street Merchant (Left)", regions::hyrule::kakariko::village::SUBREGION)?;
+    let item_name_right = seed_info.get_item_name("Street Merchant (Right)", regions::hyrule::kakariko::village::SUBREGION)?;
 
     let mut street_merchant = load_msbt(patcher, FieldLight, "FieldLight_18")?;
     street_merchant.set(
@@ -416,29 +411,14 @@ fn patch_hint_ghosts(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> 
     add_to_msbt_hint_map(&mut msbt_hint_map, &seed_info.hints.custom_hints)?;
 
     // Load Font for word-wrapping
-    let font = patcher.game.font();
-    if let Err(_) = &font {
-        warn!("Could not load font.");
-    }
+    let font = patcher.game.font().unwrap();
 
     // Update the MSBT Files with the generated Hints
     for ((course, msbt_file), labels) in msbt_hint_map {
         let mut msbt_file = load_msbt(patcher, course, msbt_file)?;
 
         for (label, hint) in labels {
-            if let Ok(font) = &font {
-                match font.wrap(&hint) {
-                    Ok(wrapped) => {
-                        msbt_file.set(label, &wrapped);
-                    },
-                    Err(err) => {
-                        warn!("{}", err.to_string());
-                        msbt_file.set(label, &hint);
-                    }
-                }
-            } else {
-                msbt_file.set(label, &hint);
-            }
+            msbt_file.set(label, &font.try_wrap(&hint, 360));
         }
 
         patcher.update(msbt_file.dump())?;
@@ -470,7 +450,7 @@ fn patch_mother_maiamai_sign(patcher: &mut Patcher, seed_info: &SeedInfo) -> Res
     let major_item_count = [
         "Maiamai Bow Upgrade", "Maiamai Boomerang Upgrade", "Maiamai Hookshot Upgrade", "Maiamai Hammer Upgrade",
         "Maiamai Bombs Upgrade", "Maiamai Fire Rod Upgrade", "Maiamai Ice Rod Upgrade", "Maiamai Tornado Rod Upgrade",
-        "Maiamai Sand Rod Upgrade", "100 Maiamai",
+        "Maiamai Sand Rod Upgrade", "Maiamai Great Spin",
     ]
     .iter()
     .flat_map(|&loc| {

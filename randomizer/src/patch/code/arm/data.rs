@@ -75,6 +75,10 @@ where
     instruction(operand2.into().code(), 0b1101, false, R0, rd)
 }
 
+pub fn mul(rd: Register, rm: Register, rs: Register) -> Instruction {
+    Instruction::new(rm.shift(0) | 0b1001 << 4 | rs.shift(8) | rd.shift(16))
+}
+
 #[allow(unused)]
 pub fn nop() -> Instruction {
     mov(R0, R0) // fixme not actually the NOP command
