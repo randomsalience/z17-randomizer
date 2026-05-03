@@ -160,7 +160,7 @@ fn patch_event_item_get(patcher: &mut Patcher, archipelago: bool) -> Result<()> 
     msbt.set("item_sandrod", "You got the Sand Rod!");
 
     msbt.set("kandelaar", "You got the lamp!");
-    msbt.set("zelda_amulet", "You got a special charm!"); // Cut " from Princess Zelda"
+    msbt.set("zelda_amulet", &format!("You got a special charm!\nIt's {}!", attention("useless"))); // Cut " from Princess Zelda"
 
     if archipelago {
         msbt.set("message_bottle", "You got an Archipelago item!")
