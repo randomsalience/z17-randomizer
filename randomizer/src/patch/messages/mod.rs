@@ -119,11 +119,13 @@ fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
         item_name.set("item_name_firerod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (9)")?, 360));
 
         // Mother Maiamai Items
-        let mm_items = ["Bow", "Boomerang", "Hookshot", "Hammer", "Bombs", "Fire Rod", "Ice Rod", "Tornado Rod", "Sand Rod"];
-        for i in 0..9 {
-            let item = info.get_item_name(&format!("Maiamai {} Upgrade", mm_items[i]))?;
-            let name = font.try_truncate_mid(&item, &format!(" ({})", seed_info.mother_maiamai_costs[i]), 240);
-            item_name_upper.add(&format!("item_name_mm{}", i), &name);
+        if seed_info.settings.shuffle_maiamai_rewards {
+            let mm_items = ["Bow", "Boomerang", "Hookshot", "Hammer", "Bombs", "Fire Rod", "Ice Rod", "Tornado Rod", "Sand Rod"];
+            for i in 0..9 {
+                let item = info.get_item_name(&format!("Maiamai {} Upgrade", mm_items[i]))?;
+                let name = font.try_truncate_mid(&item, &format!(" ({})", seed_info.mother_maiamai_costs[i]), 240);
+                item_name_upper.add(&format!("item_name_mm{}", i), &name);
+            }
         }
     }
 
