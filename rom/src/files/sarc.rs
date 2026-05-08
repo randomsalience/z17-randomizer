@@ -1,12 +1,11 @@
 use {
-    super::{align, File, FromFile, IntoBytes},
+    super::{align, File, FromFile, IntoBytes, yaz0},
     crate::{Error, Result},
     bytey::*,
     log::debug,
     std::{
         cell::{Ref, RefCell},
         collections::BTreeMap,
-        io::Cursor,
     },
 };
 
@@ -139,9 +138,7 @@ impl Inner {
     fn decompress(&mut self) -> Result<&mut Archive> {
         if let Self::Compressed(data) = self {
             *self = Self::Decompressed(Archive::from(
-                yaz0::Yaz0Archive::new(Cursor::new(&data))
-                    .map_err(|_| Error::new("Archive could not be decompressed.".to_string()))?
-                    .decompress()
+                yaz0::decompress(&data)
                     .map_err(|_| Error::new("Archive could not be decompressed.".to_string()))?
                     .into(),
             )?);
@@ -271,35 +268,9 @@ impl IntoBytes for Archive {
     }
 }
 
-#[cfg(debug_assertions)]
 fn compress(data: &[u8]) -> Box<[u8]> {
-    let len = data.len() as u32;
-    let mut buf = vec![];
-    buf.extend_from_slice(b"Yaz0");
-    buf.extend_from_slice(&len.to_be_bytes());
-    buf.extend_from_slice(&[0; 8]);
-    let mut chunks = data.chunks_exact(8);
-    for chunk in chunks.by_ref() {
-        buf.push(0xFF);
-        buf.extend_from_slice(chunk);
-    }
-    let remainder = chunks.remainder();
-    let padding = 8 - remainder.len();
-    if padding > 0 {
-        buf.push(0xFF);
-        buf.extend_from_slice(remainder);
-        buf.resize(buf.len() + padding, 0);
-    }
-    buf.into()
-}
-
-#[cfg(not(debug_assertions))]
-fn compress(data: &[u8]) -> Box<[u8]> {
-    let mut buf = vec![];
-    yaz0::Yaz0Writer::new(&mut buf)
-        .compress_and_write(&data, yaz0::CompressionLevel::Lookahead { quality: 1 })
-        .expect("Yaz0 compression failed.");
-    buf.into()
+    yaz0::compress(&data)
+        .into()
 }
 
 #[cfg(test)]

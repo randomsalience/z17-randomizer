@@ -638,7 +638,6 @@ dependencies = [
  "regex",
  "serde",
  "serde_repr",
- "yaz0",
 ]
 
 [[package]]

@@ -10,6 +10,7 @@ pub mod exheader;
 pub mod msgbn;
 pub mod romfs;
 pub mod sarc;
+pub mod yaz0;
 
 #[derive(Debug)]
 pub struct Cxi<R> {
