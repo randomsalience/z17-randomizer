@@ -3,14 +3,14 @@ use super::{Instruction, Register, R0};
 #[derive(Debug)]
 pub enum ShifterOperand {
     Immediate { immed_8: u8, rotate_imm: u8 },
-    Register { rm: Register },
+    Register { rm: Register, shift: u8 },
 }
 
 impl ShifterOperand {
     pub fn code(&self) -> u32 {
         match self {
             Self::Immediate { immed_8, rotate_imm } => 0x2000000 | (*rotate_imm as u32) << 8 | *immed_8 as u32,
-            Self::Register { rm } => rm.shift(0),
+            Self::Register { rm, shift } => (*shift as u32) << 7 | rm.shift(0),
         }
     }
 }
@@ -21,11 +21,13 @@ impl From<u32> for ShifterOperand {
             Self::Immediate { immed_8: immediate as u8, rotate_imm: 0 }
         } else {
             let mut shifted = immediate;
+            let mut failure = false;
             ((1..=0xF)
                 .rev()
                 .find_map(|rotate_imm| {
+                    failure = failure || (shifted & 3 != 0);
                     shifted >>= 2;
-                    if shifted & 0xFF == shifted {
+                    if !failure && shifted & 0xFF == shifted {
                         Some(Self::Immediate { immed_8: shifted as u8, rotate_imm })
                     } else {
                         None
@@ -39,7 +41,14 @@ impl From<u32> for ShifterOperand {
 
 impl From<Register> for ShifterOperand {
     fn from(rm: Register) -> Self {
-        Self::Register { rm }
+        Self::Register { rm, shift: 0 }
+    }
+}
+
+impl From<(Register, u8)> for ShifterOperand {
+    fn from(reg_and_shift: (Register, u8)) -> Self {
+        let (rm, shift) = reg_and_shift;
+        Self::Register { rm, shift }
     }
 }
 

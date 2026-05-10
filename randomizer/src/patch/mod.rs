@@ -598,7 +598,7 @@ impl Patcher {
         messages::patch_messages(&mut self, seed_info)?;
         let prizes = get_dungeon_prizes(&seed_info.layout);
         prizes::patch_dungeon_prizes(&mut self, &prizes);
-        // byaml::get_item::patch(&mut self)?;
+        byaml::get_item::patch(&mut self)?;
         byaml::course::patch(&mut self, &prizes, seed_info);
         byaml::stage::patch(&mut self, seed_info)?;
         let scene_env_file = byaml::scene_env::patch(&mut self, &seed_info.settings);
@@ -606,7 +606,9 @@ impl Patcher {
 
         let common_archive = self.game.common()?;
         let mut item_actors = HashMap::new();
+        let mut get_item_actors = Vec::new();
 
+        info!("Patching Item Actors...");
         for (item, get_item) in self.game.match_items_to_get_items() {
             if Item::SpecialMove.as_str().eq(&get_item.0) {
                 // fixme hacky and gross
@@ -614,6 +616,9 @@ impl Patcher {
                 actor.rename(String::from("World/Actor/SwordD.bch"));
                 item_actors.insert(item, actor);
             } else if let Some(mut actor) = get_item.actor(&self.game) {
+                let mut get_item_actor = actor.clone();
+                get_item_actor.rename(format!("World/GetItem/{}.bch", get_item.name()));
+                get_item_actors.push(get_item_actor);
                 actor.rename(format!("World/Actor/{}.bch", get_item.actor_name()?));
                 item_actors.insert(item, actor);
             }
@@ -629,7 +634,11 @@ impl Patcher {
             kakariko_actors.add(item_actors.get(&merchant[0]).unwrap().clone())?;
             kakariko_actors.add(item_actors.get(&merchant[2]).unwrap().clone())?;
         }
+        
+        info!("Patching Code...");
         let code = code::create(&self, seed_info);
+
+        info!("Creating romfs...");
         let Self { game, boot, courses, .. } = self;
         let mut romfs = Files(vec![]);
 
@@ -658,6 +667,9 @@ impl Patcher {
         }
         for cutscene in cutscenes {
             romfs.add(cutscene);
+        }
+        for actor in get_item_actors {
+            romfs.add(actor);
         }
         Ok(Patches { game, code, romfs })
     }

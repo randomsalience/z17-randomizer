@@ -7,8 +7,7 @@ use crate::patch::code::arm::ls::{ldr, ldrb, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
 use crate::{Layout, Result, SeedInfo, patch::util::prize_flag, regions};
-use game::Item;
-use game::Item::*;
+use game::{Course, Item, Item::*};
 use modinfo::settings::{Settings, Cracks, HintGhosts, PedestalSetting::*};
 use rom::ExHeader;
 use rom::flag::Flag;
@@ -192,6 +191,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     // instant text
     code.overwrite(0x17A430, [0xFF]);
 
+    new_items(&mut code);
     remove_charm_from_gear_menu(&mut code);
     fix_joystick_rotation(&mut code);
     rental_items(&mut code);
@@ -611,6 +611,102 @@ fn do_dev_stuff(code: &mut Code, seed_info: &SeedInfo) {
     let amount = 25;
     code.patch(0x2559bc, [add(R1, R1, amount)]);
     code.patch(0x2559c0, [add(R2, R2, amount)]);
+}
+
+/// Add new get items
+fn new_items(code: &mut Code) {
+    // Adjust size of get item list
+    let item_count = Item::iter().count() as u32;
+    code.addr(0x346b18, 0xec * item_count);
+    code.patch(0x3a56b4, [mov(R3, item_count)]);
+    code.patch(0x3a56dc, [cmp(R0, item_count)]);
+
+    // Add messages for new get items
+    let mut message_name_pointer_data = Vec::new();
+    for item in Item::new_items() {
+        let message_name = code.rodata().declare(item.get_item_message_name());
+        code.rodata().declare([0]);
+        message_name_pointer_data.append(&mut message_name.to_le_bytes().into());
+    }
+    let get_item_message_name_pointers = code.rodata().declare(message_name_pointer_data);
+
+    let old_get_item_message_name = code.text().define([
+        add(R1, R3, (R1, 3)),
+        ldr(R1, (R1, 4)),
+        b(0x4b9b08),
+    ]);
+    let fn_get_item_message_name = code.text().define([
+        str_(R2, (R0, 0)),
+        cmp(R1, 0x61),
+        b(old_get_item_message_name).lt(),
+        sub(R1, R1, 0x61),
+        ldr(R3, get_item_message_name_pointers),
+        add(R1, R3, (R1, 2)),
+        ldr(R1, (R1, 0)),
+        b(0x4b9b08),
+    ]);
+    code.patch(0x4b9afc, [b(fn_get_item_message_name)]);
+
+    // Courses in the order of the get item keys
+    let course_table = code.rodata().declare([
+        Course::CaveLight as u8,
+        Course::DungeonEast as u8,
+        Course::DungeonWind as u8,
+        Course::DungeonHera as u8,
+        Course::CaveDark as u8,
+        Course::DungeonDark as u8,
+        Course::DungeonWater as u8,
+        Course::DungeonDokuro as u8,
+        Course::DungeonHagure as u8,
+        Course::DungeonIce as u8,
+        Course::DungeonSand as u8,
+        Course::DungeonKame as u8,
+        Course::DungeonGanon as u8,
+    ]);
+
+    let not_new_item = code.text().define([
+        mov(R0, 0),
+        b(0x3459c4),
+    ]);
+
+    // Code for gaining a small key
+    let fn_add_small_key = code.text().define([
+        // Check if item is small key
+        cmp(R0, Item::SMALL_KEY_START),
+        b(not_new_item).lt(),
+        cmp(R0, Item::SMALL_KEY_END),
+        b(not_new_item).gt(),
+
+        // Get course associated to key
+        sub(R0, R0, Item::SMALL_KEY_START),
+        ldr(R1, course_table),
+        ldrb(R1, (R1, R0)),
+
+        // Get current course
+        ldr(R2, GAME_MANAGER),
+        ldr(R2, (R2, 0)),
+        ldrb(R2, (R2, 0x18)),
+
+        // Load player inventory
+        ldr(R3, PLAYER_OBJECT_SINGLETON),
+        ldr(R3, (R3, 0)),
+        ldr(R3, (R3, 0x10)),
+        add(R3, R3, 0x400),
+        add(R3, R3, 0xC),
+
+        // Increment key count
+        cmp(R1, R2),
+        add(R2, R1, 0x10C),
+        ldrb(R0, (R3, 0x24)).eq(),
+        ldrb(R0, (R3, R2)).ne(),
+        add(R0, R0, 1),
+        strb(R0, (R3, 0x24)).eq(),
+        strb(R0, (R3, R2)).ne(),
+
+        b(0x344f00),
+    ]);
+
+    code.patch(0x3459c0, [b(fn_add_small_key)]);
 }
 
 /// The game will show a green orb on the gear menu whether you have the Charm or the full Pendant
@@ -1538,7 +1634,7 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 32] = [
     (HeartPiece, 0x5D7B94),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 45] = [
+const ACTOR_NAMES: [(Item, &str); 58] = [
     (KeyBoss, "KeyBoss"),
     (TriforceCourage, "BadgeBee"),
     (Compass, "Compass"),
@@ -1584,6 +1680,19 @@ const ACTOR_NAMES: [(Item, &str); 45] = [
     (Fairy, "GtEvBottleFairy"),
     (Bee, "GtEvBottleBee"),
     (GoldenBee, "GtEvBottleBee"),
+    (SmallKeyHyrule, "KeySmall"),
+    (SmallKeyEastern, "KeySmall"),
+    (SmallKeyGales, "KeySmall"),
+    (SmallKeyHera, "KeySmall"),
+    (SmallKeyLorule, "KeySmall"),
+    (SmallKeyDark, "KeySmall"),
+    (SmallKeySwamp, "KeySmall"),
+    (SmallKeySkull, "KeySmall"),
+    (SmallKeyThieves, "KeySmall"),
+    (SmallKeyIce, "KeySmall"),
+    (SmallKeyDesert, "KeySmall"),
+    (SmallKeyTurtle, "KeySmall"),
+    (SmallKeyCastle, "KeySmall"),
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1611,7 +1720,7 @@ const ITEM_NAME_OFFSETS: [(Item, u32); 20] = [
     (RupeeGold, 0x6f9be2),       // item_name_sandrod_rental
 ];
 
-const ITEM_NAMES: [(Item, &str); 57] = [
+const ITEM_NAMES: [(Item, &str); 70] = [
     (BadgeBee, "beebadge"),
     (Compass, "compass"),
     (ItemBell, "bell"),
@@ -1669,6 +1778,19 @@ const ITEM_NAMES: [(Item, &str); 57] = [
     (Fairy, "fairy"),
     (Bee, "bee"),
     (GoldenBee, "goldenbee"),
+    (SmallKeyHyrule, "small_key_hyrule"),
+    (SmallKeyEastern, "small_key_eastern"),
+    (SmallKeyGales, "small_key_gales"),
+    (SmallKeyHera, "small_key_hera"),
+    (SmallKeyLorule, "small_key_lorule"),
+    (SmallKeyDark, "small_key_dark"),
+    (SmallKeySwamp, "small_key_swamp"),
+    (SmallKeySkull, "small_key_skull"),
+    (SmallKeyThieves, "small_key_thieves"),
+    (SmallKeyIce, "small_key_ice"),
+    (SmallKeyDesert, "small_key_desert"),
+    (SmallKeyTurtle, "small_key_turtle"),
+    (SmallKeyCastle, "small_key_castle"),
 ];
 
 const EVENT_FLAG_PTR: u32 = 0x70B728;
@@ -1688,5 +1810,6 @@ const FN_SET_EVENT_FLAG: u32 = 0x4CDF40;
 // const MAP_MANAGER_INSTANCE: u32 = 0x70c8e0;
 // const PTR_MAP_MANAGER_INSTANCE: u32 = 0x27320c;
 const PLAYER_OBJECT_SINGLETON: u32 = 0x70FB60;
+const GAME_MANAGER: u32 = 0x709DF8;
 // const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;
