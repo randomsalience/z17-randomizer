@@ -7,7 +7,7 @@ use crate::{
     patch::messages::{hint_ghosts::HintGhost, msbt::load_msbt},
     regions, DashMap, Patcher, Result, SeedInfo,
 };
-use game::Course::{self, *};
+use game::{Course::{self, *}, Item};
 use log::info;
 use macros::fail;
 
@@ -165,7 +165,11 @@ fn patch_event_item_get(patcher: &mut Patcher, archipelago: bool) -> Result<()> 
     msbt.set("zelda_amulet", &format!("You got a special charm!\nIt's {}!", attention("useless"))); // Cut " from Princess Zelda"
 
     if archipelago {
-        msbt.set("message_bottle", "You got an Archipelago item!")
+        msbt.set("message_bottle", "You got an Archipelago item!");
+    }
+
+    for item in Item::new_items() {
+        msbt.add(item.get_item_message_name(), item.get_item_message());
     }
 
     patcher.update(msbt.dump())?;

@@ -943,44 +943,44 @@ impl Item {
             OreRed => game::Item::OreRed,
 
             // Small Keys
-            HyruleSanctuaryKey
-            | LoruleSanctuaryKey
-            | EasternKeySmall01
-            | EasternKeySmall02
-            | GalesKeySmall01
+            HyruleSanctuaryKey => game::Item::SmallKeyHyrule,
+            LoruleSanctuaryKey => game::Item::SmallKeyLorule,
+            EasternKeySmall01
+            | EasternKeySmall02 => game::Item::SmallKeyEastern,
+            GalesKeySmall01
             | GalesKeySmall02
             | GalesKeySmall03
-            | GalesKeySmall04
-            | HeraKeySmall01
-            | HeraKeySmall02
-            | DarkKeySmall01
+            | GalesKeySmall04 => game::Item::SmallKeyGales,
+            HeraKeySmall01
+            | HeraKeySmall02 => game::Item::SmallKeyHera,
+            DarkKeySmall01
             | DarkKeySmall02
             | DarkKeySmall03
-            | DarkKeySmall04
-            | SwampKeySmall01
+            | DarkKeySmall04 => game::Item::SmallKeyDark,
+            SwampKeySmall01
             | SwampKeySmall02
             | SwampKeySmall03
-            | SwampKeySmall04
-            | SkullKeySmall01
+            | SwampKeySmall04 => game::Item::SmallKeySwamp,
+            SkullKeySmall01
             | SkullKeySmall02
-            | SkullKeySmall03
-            | ThievesKeySmall
-            | IceKeySmall01
+            | SkullKeySmall03 => game::Item::SmallKeySkull,
+            ThievesKeySmall => game::Item::SmallKeyThieves,
+            IceKeySmall01
             | IceKeySmall02
-            | IceKeySmall03
-            | DesertKeySmall01
+            | IceKeySmall03 => game::Item::SmallKeyIce,
+            DesertKeySmall01
             | DesertKeySmall02
             | DesertKeySmall03
             | DesertKeySmall04
-            | DesertKeySmall05
-            | TurtleKeySmall01
+            | DesertKeySmall05 => game::Item::SmallKeyDesert,
+            TurtleKeySmall01
             | TurtleKeySmall02
-            | TurtleKeySmall03
-            | LoruleCastleKeySmall01
+            | TurtleKeySmall03 => game::Item::SmallKeyTurtle,
+            LoruleCastleKeySmall01
             | LoruleCastleKeySmall02
             | LoruleCastleKeySmall03
             | LoruleCastleKeySmall04
-            | LoruleCastleKeySmall05 => game::Item::KeySmall,
+            | LoruleCastleKeySmall05 => game::Item::SmallKeyCastle,
 
             // Big Keys
             EasternKeyBig | GalesKeyBig | HeraKeyBig | DarkKeyBig | SwampKeyBig | SkullKeyBig | ThievesKeyBig

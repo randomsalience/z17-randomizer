@@ -36,6 +36,10 @@ pub struct GetItem(
 );
 
 impl GetItem {
+    pub fn name(&self) -> &str {
+        &self.0
+    }
+
     pub fn actor(&self, game: &Rom) -> Option<Actor> {
         if self.1.is_empty() {
             game.get_item_actor("KeyBoss").ok()

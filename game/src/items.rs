@@ -250,4 +250,95 @@ Item(u16) {
     SageIrene = 0x66,
     /// Sage Rosso (FAKE ITEM, acts as stand-in until we can add new GetItems)
     SageRosso = 0x67,
+
+    /// Small Key (Hyrule Sanctuary)
+    SmallKeyHyrule = 0x68,
+    /// Small Key (Eastern Palace)
+    SmallKeyEastern = 0x69,
+    /// Small Key (House of Gales)
+    SmallKeyGales = 0x6A,
+    /// Small Key (Tower of Hera)
+    SmallKeyHera = 0x6B,
+    /// Small Key (Lorule Sanctuary)
+    SmallKeyLorule = 0x6C,
+    /// Small Key (Dark Palace)
+    SmallKeyDark = 0x6D,
+    /// Small Key (Swamp Palace)
+    SmallKeySwamp = 0x6E,
+    /// Small Key (Skull Woods)
+    SmallKeySkull = 0x6F,
+    /// Small Key (Thieves' Hideout)
+    SmallKeyThieves = 0x70,
+    /// Small Key (Ice Ruins)
+    SmallKeyIce = 0x71,
+    /// Small Key (Desert Palace)
+    SmallKeyDesert = 0x72,
+    /// Small Key (Turtle Rock)
+    SmallKeyTurtle = 0x73,
+    /// Small Key (Lorule Castle)
+    SmallKeyCastle = 0x74,
 }}
+
+impl Item {
+    pub const SMALL_KEY_START: u32 = Item::SmallKeyHyrule as u32;
+    pub const SMALL_KEY_END: u32 = Item::SmallKeyCastle as u32;
+
+    pub fn new_items() -> impl Iterator<Item = Self> {
+        const MAX_BASE_ITEM: Item = Item::GoldenBeeForSale;
+        Self::iter().filter(|&item| item > MAX_BASE_ITEM)
+    }
+
+    /// Get a name used to identify the message displayed when getting an item
+    pub fn get_item_message_name(&self) -> &str {
+        match &self {
+            Item::SageGulley => "sage_gulley",
+            Item::SageOren => "sage_oren",
+            Item::SageSeres => "sage_seres",
+            Item::SageOsfala => "sage_osfala",
+            Item::SageImpa => "sage_impa",
+            Item::SageIrene => "sage_irene",
+            Item::SageRosso => "sage_rosso",
+            Item::SmallKeyHyrule => "small_key_hyrule",
+            Item::SmallKeyEastern => "small_key_eastern",
+            Item::SmallKeyGales => "small_key_gales",
+            Item::SmallKeyHera => "small_key_hera",
+            Item::SmallKeyLorule => "small_key_lorule",
+            Item::SmallKeyDark => "small_key_dark",
+            Item::SmallKeySwamp => "small_key_swamp",
+            Item::SmallKeySkull => "small_key_skull",
+            Item::SmallKeyThieves => "small_key_thieves",
+            Item::SmallKeyIce => "small_key_ice",
+            Item::SmallKeyDesert => "small_key_desert",
+            Item::SmallKeyTurtle => "small_key_turtle",
+            Item::SmallKeyCastle => "small_key_castle",
+            _ => { panic!("No get item message name found for item {}", self.as_str()); }
+        }
+    }
+
+    /// Get the message to be displayed when getting an item
+    pub fn get_item_message(&self) -> &str {
+        match &self {
+            Item::SageGulley => "Gulley has been rescued!",
+            Item::SageOren => "Oren has been rescued!",
+            Item::SageSeres => "Seres has been rescued!",
+            Item::SageOsfala => "Osfala has been rescued!",
+            Item::SageImpa => "Impa has been rescued!",
+            Item::SageIrene => "Irene has been rescued!",
+            Item::SageRosso => "Rosso has been rescued!",
+            Item::SmallKeyHyrule => "You got a small key to Hyrule Sanctuary!",
+            Item::SmallKeyEastern => "You got a small key to Eastern Palace!",
+            Item::SmallKeyGales => "You got a small key to House of Gales!",
+            Item::SmallKeyHera => "You got a small key to Tower of Hera!",
+            Item::SmallKeyLorule => "You got a small key to Lorule Sanctuary!",
+            Item::SmallKeyDark => "You got a small key to Dark Palace!",
+            Item::SmallKeySwamp => "You got a small key to Swamp Palace!",
+            Item::SmallKeySkull => "You got a small key to Skull Woods!",
+            Item::SmallKeyThieves => "You got a small key to Thieves' Hideout!",
+            Item::SmallKeyIce => "You got a small key to Ice Ruins!",
+            Item::SmallKeyDesert => "You got a small key to Desert Palace!",
+            Item::SmallKeyTurtle => "You got a small key to Turtle Rock!",
+            Item::SmallKeyCastle => "You got a small key to Lorule Castle!",
+            _ => { panic!("No get item message name found for item {}", self.as_str()); }
+        }
+    }
+}
