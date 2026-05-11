@@ -170,8 +170,8 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
         patch_archipelago(&mut code, seed_info.seed, &info.name);
     }
     
-    let actor_names = actor_names(&mut code);
-    let item_names = item_names(&mut code);
+    let mut actor_names = actor_names();
+    let mut item_names = item_names();
 
     do_dev_stuff(&mut code, seed_info);
 
@@ -202,7 +202,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     configure_pedestal_requirements(&mut code, &seed_info.settings);
     night_mode(&mut code, &seed_info.settings);
     show_hint_ghosts(&mut code, &seed_info.settings);
-    mother_maiamai(&mut code, &seed_info.layout, &item_names);
+    mother_maiamai(&mut code, &seed_info.layout, &mut item_names);
     if seed_info.is_archipelago() && seed_info.settings.shuffle_maiamai_rewards {
         archipelago_mother_maiamai(&mut code, &seed_info.mother_maiamai_costs);
     }
@@ -267,8 +267,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     let mut name_offset = 0x714608;
     for rental in patcher.rentals.iter() {
         let actor = actor_names
-            .get(rental)
-            .copied()
+            .get_pointer(rental, &mut code)
             .unwrap_or_else(|| panic!("Could not find actor name for {}", rental.as_str()));
         code.text().define([
             ldr(R1, actor),
@@ -277,7 +276,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
             add(PC, PC, 0), // bad hack
         ]);
         actor_offset += 8;
-        let name = item_names.get(rental).copied().unwrap_or(0x6F9B1A);
+        let name = item_names.get_pointer(rental, &mut code).unwrap_or(0x6F9B1A);
         code.overwrite(name_offset, name.to_le_bytes());
         name_offset += 4;
     }
@@ -287,15 +286,17 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code.overwrite(0x6A0348, rentals);
     let sold_out = 0x5D6B84u32;
     let merchant_left = patcher.merchant[0];
+    let merchant_left_actor_name = actor_names.get_pointer(&merchant_left, &mut code).unwrap();
     let merchant_left_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_left).unwrap().to_le_bytes());
+    code.rodata().declare(merchant_left_actor_name.to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DD4, merchant_left_actor.to_le_bytes());
     code.overwrite(0x6A03E0, [merchant_left as u8]);
     let merchant_right = patcher.merchant[2];
+    let merchant_right_actor_name = actor_names.get_pointer(&merchant_right, &mut code).unwrap();
     let merchant_right_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_right).unwrap().to_le_bytes());
+    code.rodata().declare(merchant_right_actor_name.to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DE0, merchant_right_actor.to_le_bytes());
@@ -796,7 +797,7 @@ fn quake(code: &mut Code) {
 }
 
 /// Mother Maiamai Stuff
-fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u32>) {
+fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &mut StringTable) {
     /// Use event flags 863-872 (not 866) to record whether we've picked up that item's upgrade.
     /// The "inventory index" (see table: 0x6a6170) of each item gets added to this:
     /// * 0x4 = Bow
@@ -942,18 +943,20 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Item Names
-    let maiamai_item_name_table = code.rodata().declare(
+    let maiamai_item_name_table_pointers =
         [ice_rod, sand_rod, tornado_rod, bombs, fire_rod, hookshot, boomerang, hammer, bow]
             .iter()
-            .flat_map(|item| {
-                u32::to_le_bytes(
-                    *item_names
-                        .get(&Randomizable::normalize(*item))
-                        .unwrap_or_else(|| panic!("No item_name for: {item:?}")),
-                )
+            .map(|item| {
+                item_names
+                    .get_pointer(&Randomizable::normalize(*item), code)
+                    .unwrap_or_else(|| panic!("No item_name for: {item:?}"))
             })
-            .collect::<Vec<_>>(),
-    );
+            .collect::<Vec<_>>();
+
+    let maiamai_item_name_table = code.rodata;
+    for pointer in maiamai_item_name_table_pointers {
+        code.rodata().declare(u32::to_le_bytes(pointer));
+    }
 
     let fn_get_maiamai_item_name = code.text().define([
         push([R1, LR]),
@@ -1580,23 +1583,60 @@ fn ore_progress(code: &mut Code) {
     code.patch(0x4637B8, [bl(get_sword_fake)]);
 }
 
-fn actor_names(code: &mut Code) -> HashMap<Item, u32> {
-    let mut map = IntoIterator::into_iter(ACTOR_NAME_OFFSETS).collect::<HashMap<_, _>>();
-    map.extend(IntoIterator::into_iter(ACTOR_NAMES).map(|(item, name)| {
-        let name = format!("{}\0", name);
-        (item, code.rodata().declare(name.as_bytes()))
-    }));
-    map
+struct StringTable {
+    map: HashMap<Item, (Option<u32>, String)>,
 }
 
-fn item_names(code: &mut Code) -> HashMap<Item, u32> {
-    let mut map = IntoIterator::into_iter(ITEM_NAME_OFFSETS).collect::<HashMap<_, _>>();
-    map.extend(IntoIterator::into_iter(ITEM_NAMES).map(|(item, name)| {
+impl StringTable {
+    fn new() -> StringTable {
+        StringTable { map: HashMap::new() }
+    }
+
+    fn insert_addr(&mut self, item: Item, addr: u32) {
+        self.map.insert(item, (Some(addr), "".to_string()));
+    }
+
+    fn insert_text(&mut self, item: Item, text: String) {
+        self.map.insert(item, (None, text));
+    }
+
+    fn get_pointer(&mut self, item: &Item, code: &mut Code) -> Option<u32> {
+        if let Some((cached_addr, text)) = self.map.get(item) {
+            if let Some(addr) = cached_addr {
+                Some(*addr)
+            } else {
+                let addr = code.rodata().declare(text.as_bytes());
+                self.map.insert(*item, (Some(addr), text.clone()));
+                Some(addr)
+            }
+        } else {
+            None
+        }
+    }
+}
+
+fn actor_names() -> StringTable {
+    let mut table = StringTable::new();
+    for (item, addr) in ACTOR_NAME_OFFSETS {
+        table.insert_addr(item, addr);
+    }
+    for (item, name) in ACTOR_NAMES {
+        let name = format!("{}\0", name);
+        table.insert_text(item, name);
+    }
+    table
+}
+
+fn item_names() -> StringTable {
+    let mut table = StringTable::new();
+    for (item, addr) in ITEM_NAME_OFFSETS {
+        table.insert_addr(item, addr);
+    }
+    for (item, name) in ITEM_NAMES {
         let name = format!("item_name_{}\0", name);
-        (item, code.rodata().declare(name.as_bytes()))
-    }));
-    // log::info!("{map:?}");
-    map
+        table.insert_text(item, name);
+    }
+    table
 }
 
 const ACTOR_NAME_OFFSETS: [(Item, u32); 32] = [

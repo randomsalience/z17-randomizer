@@ -129,6 +129,34 @@ fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
         }
     }
 
+    item_name.add("item_name_small_key_hyrule", "small key to Hyrule Sanctuary");
+    item_name.add("item_name_small_key_eastern", "small key to Eastern Palace");
+    item_name.add("item_name_small_key_gales", "small key to House of Gales");
+    item_name.add("item_name_small_key_hera", "small key to Tower of Hera");
+    item_name.add("item_name_small_key_lorule", "small key to Lorule Sanctuary");
+    item_name.add("item_name_small_key_dark", "small key to Dark Palace");
+    item_name.add("item_name_small_key_swamp", "small key to Swamp Palace");
+    item_name.add("item_name_small_key_skull", "small key to Skull Woods");
+    item_name.add("item_name_small_key_thieves", "small key to Thieves' Hideout");
+    item_name.add("item_name_small_key_ice", "small key to Ice Ruins");
+    item_name.add("item_name_small_key_desert", "small key to Desert Palace");
+    item_name.add("item_name_small_key_turtle", "small key to Turtle Rock");
+    item_name.add("item_name_small_key_castle", "small key to Lorule Castle");
+
+    item_name_upper.add("item_name_small_key_hyrule", "Small Key to Hyrule Sanctuary");
+    item_name_upper.add("item_name_small_key_eastern", "Small Key to Eastern Palace");
+    item_name_upper.add("item_name_small_key_gales", "Small Key to House of Gales");
+    item_name_upper.add("item_name_small_key_hera", "Small Key to Tower of Hera");
+    item_name_upper.add("item_name_small_key_lorule", "Small Key to Lorule Sanctuary");
+    item_name_upper.add("item_name_small_key_dark", "Small Key to Dark Palace");
+    item_name_upper.add("item_name_small_key_swamp", "Small Key to Swamp Palace");
+    item_name_upper.add("item_name_small_key_skull", "Small Key to Skull Woods");
+    item_name_upper.add("item_name_small_key_thieves", "Small Key to Thieves' Hideout");
+    item_name_upper.add("item_name_small_key_ice", "Small Key to Ice Ruins");
+    item_name_upper.add("item_name_small_key_desert", "Small Key to Desert Palace");
+    item_name_upper.add("item_name_small_key_turtle", "Small Key to Turtle Rock");
+    item_name_upper.add("item_name_small_key_castle", "Small Key to Lorule Castle");
+
     patcher.update(item_name.dump())?;
     patcher.update(item_name_upper.dump())?;
 
