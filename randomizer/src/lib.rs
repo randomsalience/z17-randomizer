@@ -747,6 +747,14 @@ impl SeedInfo {
         let user_config = UserConfig::new(rom_path.into(), out_path.into());
         patch_seed(self, &user_config, false, true).unwrap();
     }
+
+    pub fn get_crack_map_json(&self) -> String {
+        serde_json::to_string(&self.crack_map).unwrap()
+    }
+
+    pub fn get_vane_map_json(&self) -> String {
+        serde_json::to_string(&self.vane_map).unwrap()
+    }
 }
 
 pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool, no_spoiler: bool) -> Result<()> {
