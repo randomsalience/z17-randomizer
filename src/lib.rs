@@ -1,9 +1,14 @@
 use pyo3::prelude::*;
-use simplelog::{LevelFilter, SimpleLogger};
+use std::{fs::File, path::Path};
+use simplelog::{LevelFilter, SimpleLogger, CombinedLogger, WriteLogger, SharedLogger};
 
 #[pyfunction]
 pub fn logging_on() {
-    SimpleLogger::init(LevelFilter::Info, Default::default()).expect("Could not initialize logger.");
+    let mut loggers: Vec<Box<dyn SharedLogger>> = vec![SimpleLogger::new(LevelFilter::Info, Default::default())];
+    if let Ok(logfile) = File::create(Path::new("logs").join("albwrandomizer.log")) {
+        loggers.push(WriteLogger::new(LevelFilter::Info, Default::default(), logfile));
+    }
+    CombinedLogger::init(loggers).expect("Could not initialize logger.");
 }
 
 #[pymodule]

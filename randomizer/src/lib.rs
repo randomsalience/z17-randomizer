@@ -22,7 +22,7 @@ use macros::fail;
 use modinfo::Settings;
 use patch::Patcher;
 use path_absolutize::*;
-use pyo3::prelude::*;
+use pyo3::{prelude::*, exceptions::PyRuntimeError};
 use rand::{rngs::StdRng, SeedableRng};
 use regions::Subregion;
 use rom::Rom;
@@ -108,6 +108,12 @@ impl From<io::Error> for Error {
 impl From<system::Error> for Error {
     fn from(err: system::Error) -> Self {
         Self { kind: ErrorKind::Internal, inner: err.into() }
+    }
+}
+
+impl From<Error> for PyErr {
+    fn from(err: Error) -> PyErr {
+        PyRuntimeError::new_err(format!("{:?}", err.inner))
     }
 }
 
@@ -743,9 +749,20 @@ impl SeedInfo {
         filler::build_layout(self, &mut check_map).unwrap();
     }
 
-    pub fn patch(&self, rom_path: &str, out_path: &str) {
+    pub fn patch(&self, rom_path: &str, out_path: &str) -> Result<(), PyErr> {
         let user_config = UserConfig::new(rom_path.into(), out_path.into());
-        patch_seed(self, &user_config, false, true).unwrap();
+        match std::panic::catch_unwind(|| patch_seed(self, &user_config, false, true)) {
+            Ok(result) => {
+                if let Err(error) = &result {
+                    error!("{:?}", error);
+                }
+                result.map_err(|err| err.into())
+            }
+            Err(error) => {
+                error!("{:?}", error);
+                Err(PyRuntimeError::new_err(format!("{:?}", error)))
+            }
+        }
     }
 
     pub fn get_crack_map_json(&self) -> String {
@@ -763,13 +780,7 @@ pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool
     if !no_patch {
         info!("Starting Patch Process...");
 
-        let game = match Rom::load(user_config.rom()) {
-            Ok(rom) => rom,
-            Err(_) => {
-                // Retry once, people keep naming their ROMs "ALBW.3ds.3ds" :P
-                Rom::load(format!("{}.3ds", user_config.rom().to_str().unwrap()))?
-            },
-        };
+        let game = Rom::load(user_config.rom())?;
         let mut patcher = Patcher::new(game)?;
 
         info!("ROM Loaded.\n");
