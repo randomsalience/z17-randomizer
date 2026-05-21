@@ -491,7 +491,7 @@ pub fn generate_seed(
     // settings.log_settings();
 
     let seed_info = &calculate_seed_info(seed, settings, hash, rng)?;
-    patch_seed(seed_info, user_config, no_patch, no_spoiler)?;
+    patch_seed(seed_info, user_config, no_patch, no_spoiler, None)?;
 
     Ok(())
 }
@@ -749,9 +749,9 @@ impl SeedInfo {
         filler::build_layout(self, &mut check_map).unwrap();
     }
 
-    pub fn patch(&self, rom_path: &str, out_path: &str) -> Result<(), PyErr> {
+    pub fn patch<'py>(&self, rom_path: &str, out_path: &str, py: Python) -> Result<(), PyErr> {
         let user_config = UserConfig::new(rom_path.into(), out_path.into());
-        match std::panic::catch_unwind(|| patch_seed(self, &user_config, false, true)) {
+        match std::panic::catch_unwind(|| patch_seed(self, &user_config, false, true, Some(py))) {
             Ok(result) => {
                 if let Err(error) = &result {
                     error!("{:?}", error);
@@ -759,8 +759,15 @@ impl SeedInfo {
                 result.map_err(|err| err.into())
             }
             Err(error) => {
-                error!("{:?}", error);
-                Err(PyRuntimeError::new_err(format!("{:?}", error)))
+                let msg = if let Some(s) = error.downcast_ref::<String>() {
+                    &s
+                } else if let Some(s) = error.downcast_ref::<&str>() {
+                    s
+                } else {
+                    "An unknown panic occurred"
+                };
+                error!("{}", msg);
+                Err(PyRuntimeError::new_err(msg.to_string()))
             }
         }
     }
@@ -774,14 +781,14 @@ impl SeedInfo {
     }
 }
 
-pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool, no_spoiler: bool) -> Result<()> {
+pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool, no_spoiler: bool, py: Option<Python>) -> Result<()> {
     info!("");
 
     if !no_patch {
         info!("Starting Patch Process...");
 
         let game = Rom::load(user_config.rom())?;
-        let mut patcher = Patcher::new(game)?;
+        let patcher = Patcher::new(game)?;
 
         info!("ROM Loaded.\n");
 
@@ -792,8 +799,7 @@ pub fn patch_seed(seed_info: &SeedInfo, user_config: &UserConfig, no_patch: bool
         //     game::Course::IndoorLight, "FieldLight_18", // MSBT
         //     true);
 
-        regions::patch(&mut patcher, seed_info)?;
-        let patches = patcher.prepare(seed_info)?;
+        let patches = patcher.prepare(seed_info, py)?;
         patches.dump(user_config.output())?;
     }
     if !no_spoiler {

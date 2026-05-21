@@ -1,5 +1,6 @@
 use crate::filler::cracks::Crack;
 use crate::filler::filler_item::{Randomizable, Vane};
+use crate::regions;
 use crate::{patch::util::*, Error, Result, SeedInfo};
 use code::Code;
 use fs_extra::dir::CopyOptions;
@@ -11,6 +12,7 @@ use log::{debug, error, info};
 use macros::fail;
 use modinfo::settings::weather_vanes::WeatherVanes::*;
 use path_absolutize::*;
+use pyo3::prelude::*;
 use rom::byaml::scene_env::SceneEnvFile;
 use rom::flag::Flag;
 use rom::scene::{Transform, Vec3};
@@ -21,7 +23,7 @@ use rom::{
 };
 use serde::Serialize;
 use std::ops::Add;
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, ffi::CString, fs, path::Path};
 use tempfile::tempdir;
 use try_insert_ext::EntryInsertExt;
 
@@ -592,7 +594,15 @@ impl Patcher {
         Ok(())
     }
 
-    pub fn prepare(mut self, seed_info: &SeedInfo) -> Result<Patches> {
+    pub fn prepare(self, seed_info: &SeedInfo, py: Option<Python>) -> Result<Patches> {
+        init_progress_bar(py);
+        let result = self.prepare_inner(seed_info, py);
+        destroy_progress_bar(py);
+        result
+    }
+
+    fn prepare_inner(mut self, seed_info: &SeedInfo, py: Option<Python>) -> Result<Patches> {
+        regions::patch(&mut self, seed_info)?;
         actors::patch(&mut self, seed_info)?;
         lms::msbf::patch(&mut self, seed_info)?;
         messages::patch_messages(&mut self, seed_info)?;
@@ -639,14 +649,33 @@ impl Patcher {
         //common.add(fresco_arrow)?; // Sorta works... but not really...
         //romfs.add(common.into_archive().unwrap());
 
+        let mut count = 1;
+        if scene_env_file.is_some() {
+            count += 1;
+        }
+        for (_, Course { scenes, scene_meta, .. }) in &courses {
+            count += 1;
+            if scene_meta.is_some() {
+                count += 1;
+            }
+            count += scenes.len();
+        }
+        count += cutscenes.len();
+        let step = 1.0 / (count as f32);
+        let mut progress = 0.0;
+
         romfs.add(boot.into_archive());
+        update_progress_bar(&mut progress, step, py);
         if let Some(scene_env_file) = scene_env_file {
             romfs.add_serialize(scene_env_file.into_file());
+            update_progress_bar(&mut progress, step, py);
         };
         for (_, Course { language, scenes, scene_meta }) in courses {
             romfs.add(language.into_archive());
+            update_progress_bar(&mut progress, step, py);
             if let Some(scene_meta) = scene_meta {
                 romfs.add_serialize(scene_meta.into_file());
+                update_progress_bar(&mut progress, step, py);
             }
             for (_, scene) in scenes {
                 let (actors, stage) = scene.into_files();
@@ -654,12 +683,54 @@ impl Patcher {
                     romfs.add(archive);
                 }
                 romfs.add_serialize(stage);
+                update_progress_bar(&mut progress, step, py);
             }
         }
         for cutscene in cutscenes {
             romfs.add(cutscene);
+            update_progress_bar(&mut progress, step, py);
         }
         Ok(Patches { game, code, romfs })
+    }
+}
+
+fn init_progress_bar(py: Option<Python>) {
+    if let Some(py) = py {
+        let _ = py.run(cr#"
+import tkinter
+from tkinter import ttk
+root = tkinter.Tk()
+root.title("Patching...")
+progress_bar = ttk.Progressbar(maximum=100)
+progress_bar.place(x=10, y=10, width=200)
+root.geometry("220x50")
+root.update()
+"#,
+            None,
+            None
+        );
+    };
+}
+
+fn update_progress_bar(progress: &mut f32, step: f32, py: Option<Python>) {
+    *progress += step;
+    if let Some(py) = py {
+        let _ = py.run(
+            CString::new(format!(r#"
+progress_bar['value'] = {}
+root.update()"#,
+                *progress * 99.9))
+                .unwrap()
+                .as_c_str(),
+            None,
+            None
+        );
+    }
+}
+
+fn destroy_progress_bar(py: Option<Python>) {
+    if let Some(py) = py {
+        let _ = py.run(c"root.destroy()", None, None);
     }
 }
 
