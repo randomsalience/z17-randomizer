@@ -19,16 +19,16 @@ impl Match {
 
 struct Hasher {
     value: usize,
-    hash_table: [Option<usize>; 0x8000],
-    search_table: [Option<usize>; 0x1000],
+    hash_table: Vec<Option<usize>>,
+    search_table: Vec<Option<usize>>,
 }
 
 impl Hasher {
     fn new() -> Hasher {
         Hasher {
             value: 0,
-            hash_table: [None; 0x8000],
-            search_table: [None; 0x1000],
+            hash_table: vec![None; 0x8000],
+            search_table: vec![None; 0x1000],
         }
     }
 
