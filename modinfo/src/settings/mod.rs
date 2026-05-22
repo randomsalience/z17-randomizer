@@ -181,6 +181,10 @@ pub struct Settings {
     #[pyo3(get, set)]
     pub chest_size_matches_contents: bool,
 
+    /// Changes models for freestanding items like heart pieces and small keys to match their randomized items
+    #[pyo3(get, set)]
+    pub change_freestanding_models: bool,
+
     /// Excludes Cucco Ranch, both Rupee Rushes, Treacherous Tower, Octoball Derby, and Hyrule Hotfoot (both races)
     #[serde(default)]
     #[pyo3(get, set)]

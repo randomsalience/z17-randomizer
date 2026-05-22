@@ -44,6 +44,10 @@ impl AddressingMode {
     pub fn code(&self) -> u32 {
         self.offset.code() | (self.plus as u32) << 23 | self.rn.shift(16)
     }
+
+    pub fn halfword_code(&self) -> u32 {
+        self.offset.halfword_code() | (self.plus as u32) << 23 | self.rn.shift(16)
+    }
 }
 
 impl From<(Register, i32)> for AddressingMode {
@@ -80,6 +84,13 @@ impl Offset {
             Self::Register(register, shift) => register.shift(0) | (shift << 7) | 0x3000000,
         }) | 0x4000000
     }
+
+    pub fn halfword_code(&self) -> u32 {
+        match self {
+            Self::Immediate(offset) => (*offset & 0xf) | ((*offset & 0xf0) << 4) | 0x00400000,
+            Self::Register(register, _) => register.shift(0),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -100,6 +111,10 @@ fn instruction(code: u32, byte: bool, load: bool, rd: Register) -> Instruction {
     Instruction::new(code | (byte as u32) << 22 | (load as u32) << 20 | rd.shift(12))
 }
 
+fn halfword_instruction(code: u32, load: bool, rd: Register) -> Instruction {
+    Instruction::new(code | (load as u32) << 20 | rd.shift(12) | 0x010000b0)
+}
+
 pub fn ldr<P>(rd: Register, addressing_mode: P) -> Instruction
 where
     P: Into<Operand>,
@@ -117,6 +132,13 @@ where
     instruction(addressing_mode.into().code(), true, true, rd)
 }
 
+pub fn ldrh<A>(rd: Register, addressing_mode: A) -> Instruction
+where
+    A: Into<AddressingMode>,
+{
+    halfword_instruction(addressing_mode.into().halfword_code(), true, rd)
+}
+
 pub fn str_<A>(rd: Register, addressing_mode: A) -> Instruction
 where
     A: Into<AddressingMode>,
@@ -129,4 +151,12 @@ where
     A: Into<AddressingMode>,
 {
     instruction(addressing_mode.into().code(), true, false, rd)
+}
+
+#[allow(unused)]
+pub fn strh<A>(rd: Register, addressing_mode: A) -> Instruction
+where
+    A: Into<AddressingMode>,
+{
+    halfword_instruction(addressing_mode.into().halfword_code(), false, rd)
 }

@@ -192,6 +192,18 @@ impl Layout {
         self.get(name, subregion).unwrap_or_else(|| panic!("Location unexpectedly empty: {}", name))
     }
 
+    fn get_by_name(&self, name: &str) -> Randomizable {
+        for category in [&self.hyrule, &self.lorule, &self.dungeons] {
+            for (_, region) in category {
+                if let Some(&item) = region.get(name) {
+                    return item;
+                }
+            }
+        }
+
+        panic!("Location unexpectedly empty: {}", name);
+    }
+
     #[allow(unused)]
     fn find(&self, item: Item) -> Vec<&'static str> {
         todo!()

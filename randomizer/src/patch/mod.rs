@@ -2,6 +2,7 @@ use crate::filler::cracks::Crack;
 use crate::filler::filler_item::{Randomizable, Vane};
 use crate::regions;
 use crate::{patch::util::*, Error, Result, SeedInfo};
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
 use code::Code;
 use fs_extra::dir::CopyOptions;
 use game::{
@@ -638,7 +639,18 @@ impl Patcher {
             let kakariko_actors = courses.get_mut(&FieldLight).unwrap().scenes.get_mut(&15).unwrap().actors_mut();
             kakariko_actors.add(item_actors.get(&merchant[0]).unwrap().clone())?;
             kakariko_actors.add(item_actors.get(&merchant[2]).unwrap().clone())?;
+
+            if seed_info.settings.change_freestanding_models {
+                for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter()] {
+                    for (name, course, stage, _) in data {
+                        let item = seed_info.layout.get_by_name(name).normalize();
+                        let stage_actors = courses.get_mut(&course).unwrap().scenes.get_mut(&(stage - 1)).unwrap().actors_mut();
+                        stage_actors.add(item_actors.get(&item).unwrap().clone())?;
+                    }
+                }
+            }
         }
+
         let code = code::create(&self, seed_info);
         let Self { game, boot, courses, .. } = self;
         let mut romfs = Files(vec![]);

@@ -209,6 +209,11 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         Note: Some large chests will have a reduced hitbox to prevent negative gameplay interference.",
     );
 
+    let change_freestanding_models = prompt_bool(
+        "Change Freestanding item_models",
+        "Models of freestanding heart pieces, heart containers, and small keys will be replaced by their randomized items.",
+    );
+
     let treacherous_tower_floors = prompt_u16_in_range(
         "Treacherous Tower Floors",
         "How many floors should Treacherous Tower have? (2-66)\nRecommended: 5",
@@ -266,6 +271,7 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         assured_weapon,
         hint_ghosts: HintGhosts::Always,
         chest_size_matches_contents,
+        change_freestanding_models,
         minigames_excluded,
         skip_big_bomb_flower,
         treacherous_tower_floors,

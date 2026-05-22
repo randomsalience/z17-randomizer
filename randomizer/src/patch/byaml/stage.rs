@@ -1,6 +1,7 @@
 use crate::filler::cracks::Crack;
 use crate::patch::Patcher;
 use crate::{patch::util::*, regions, Result, SeedInfo};
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
 use game::Course::{self, *};
 use log::info;
 use macros::fail;
@@ -133,6 +134,8 @@ pub fn patch(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     patch_magic_shop(patcher);
     patch_ice_ruins(patcher);
     patch_npc_hinox(patcher);
+    patch_freestanding_items(patcher, &seed_info.settings);
+    patch_cross_old_man(patcher);
 
     patcher.modify_objs(FieldLight, 18, [disable(529)]);
 
@@ -2116,8 +2119,8 @@ fn patch_no_progression_enemies(patcher: &mut Patcher, settings: &Settings) {
     );
 }
 
+/// Change Hinox flag to an event flag
 fn patch_npc_hinox(patcher: &mut Patcher) {
-    // Change Hinox flag to an event flag
     patcher.modify_objs(
         CaveDark,
         6,
@@ -2126,6 +2129,36 @@ fn patch_npc_hinox(patcher: &mut Patcher) {
             set_enable_flag(8, Flag::NPC_HINOX),
         ]
     );
+}
+
+/// Change args to allow freestanding objects to have different models
+fn patch_freestanding_items(patcher: &mut Patcher, settings: &Settings) {
+    if !settings.change_freestanding_models {
+        return;
+    }
+
+    for (index, (_, course, stage, unq)) in HEART_PIECES.iter().enumerate() {
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32; })]);
+    }
+
+    for (index, (_, course, stage, unq)) in HEART_CONTAINERS.iter().enumerate() {
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32; })]);
+    }
+
+    for (index, (_, course, stage, unq)) in SMALL_KEYS.iter().enumerate() {
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.2 = index as i32; })]);
+    }
+}
+
+/// Remove Gramps from Kakariko because we are overwriting cross battle code
+fn patch_cross_old_man(patcher: &mut Patcher) {
+    patcher.modify_objs(
+        FieldLight,
+        16,
+        [
+            disable(220),
+        ]
+    )
 }
 
 //noinspection ALL

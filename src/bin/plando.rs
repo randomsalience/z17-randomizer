@@ -74,7 +74,7 @@ fn main() {
 
     seed_info.settings.log_settings();
 
-    match randomizer::patch_seed(&seed_info, &user_config, args.no_patch, args.no_spoiler) {
+    match randomizer::patch_seed(&seed_info, &user_config, args.no_patch, args.no_spoiler, None) {
         Ok(_) => {
             println!();
             info!("Successfully Generated ALBW Plandomizer Seed");
@@ -210,6 +210,7 @@ fn plando_settings() -> Settings {
         assured_weapon: false,
         hint_ghosts: HintGhosts::Always,
         chest_size_matches_contents: true,
+        change_freestanding_models: true,
         minigames_excluded: false,
         skip_big_bomb_flower: true,
         trials_door: TrialsDoor::OneTrialRequired,

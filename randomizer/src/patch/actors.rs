@@ -1,7 +1,7 @@
 use crate::patch::Patcher;
 use crate::Result;
 use crate::SeedInfo;
-use game::Course::{FieldLight, IndoorDark};
+use game::Course::{self, *};
 use modinfo::Settings;
 
 /// Add Actors to scenes that don't originally have them
@@ -42,3 +42,58 @@ fn patch_letter_in_a_bottle(patcher: &mut Patcher) -> Result<()> {
     patcher.scene(FieldLight, 35)?.actors_mut().add(heart_piece)?;
     Ok(())
 }
+
+pub const HEART_PIECES: [(&str, Course, u16, u16); 21] = [
+    ("[TR] Left Balcony", FieldDark, 35, 54),
+    ("Fire Cave Pillar", CaveLight, 25, 9),
+    ("Floating Island", FieldLight, 4, 25),
+    ("Spectacle Rock", FieldLight, 3, 302),
+    ("Eastern Ruins Cave", CaveLight, 29, 10),
+    ("Eastern Ruins Peg Circle", FieldLight, 30, 41),
+    ("Blacksmith Cave", CaveLight, 16, 1),
+    ("Blacksmith Ledge", FieldLight, 17, 95),
+    ("Hyrule Castle Rocks", FieldLight, 18, 209),
+    ("Kakariko Well (Top)", CaveLight, 4, 8),
+    ("Lake Hylia Eastern Shore", FieldLight, 36, 38),
+    ("Lost Woods Alcove", FieldLight, 1, 46),
+    ("Graveyard Ledge Cave", CaveLight, 5, 2),
+    ("Waterfall Cave", CaveLight, 13, 103),
+    ("[HS] Ledge", CaveLight, 18, 31),
+    ("Southern Ruins Pillar Cave", FieldLight, 33, 313),
+    ("Dark Maze Ledge", FieldDark, 20, 172),
+    ("Swamp Cave (Middle)", CaveDark, 3, 8),
+    ("Misery Mire Ledge", FieldDark, 31, 82),
+    ("Destroyed House", FieldDark, 2, 144),
+    ("n-Shaped House", FieldDark, 16, 124),
+];
+
+pub const HEART_CONTAINERS: [(&str, Course, u16, u16); 10] = [
+    ("[PD] Gemesaur King", DungeonDark, 1, 119),
+    ("[DP] Zaganaga", FieldDark, 31, 83),
+    ("[EP] Yuga (2)", DungeonEast, 3, 94),
+    ("[HG] Margomill", DungeonWind, 3, 458),
+    ("[IR] Dharkstare", DungeonIce, 1, 554),
+    ("[SW] Knucklemaster", DungeonDokuro, 2, 404),
+    ("[SP] Arrghus", DungeonWater, 1, 129),
+    ("[TT] Stalblind", IndoorDark, 15, 12),
+    ("[TH] Moldorm", DungeonHera, 1, 772),
+    ("[TR] Grinexx", DungeonKame, 3, 6),
+];
+
+pub const SMALL_KEYS: [(&str, Course, u16, u16); 15] = [
+    ("[PD] (1F) Left Pit", DungeonDark, 2, 25),
+    ("[PD] (B1) Fall From 1F", DungeonDark, 1, 26),
+    ("[PD] (B1) Helmasaur Room", DungeonDark, 1, 281),
+    ("[HG] (2F) Narrow Ledge", DungeonWind, 2, 180),
+    ("[HG] (2F) Fire Ring", DungeonWind, 2, 97),
+    ("[IR] (B2) Ice Pillar", DungeonIce, 1, 1057),
+    ("[IR] (B1) Narrow Ledge", DungeonIce, 1, 98),
+    ("[SP] (B1) Raft Room (Pillar)", DungeonWater, 2, 116),
+    ("[SP] (B1) Waterfall Room", DungeonWater, 2, 219),
+    ("[TH] (3F) Platform", DungeonHera, 1, 244),
+    ("[TH] (6F) Left Mole", DungeonHera, 1, 334),
+    ("[TR] (1F) Northwest Room", DungeonKame, 1, 153),
+    ("[TR] (1F) Northeast Ledge", DungeonKame, 1, 243),
+    ("[TR] (B1) Northeast Room", DungeonKame, 2, 53),
+    ("[LS] Ledge", AttractionDark, 2, 31),
+];

@@ -1,9 +1,10 @@
 use super::Patcher;
 use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
 use crate::patch::code::arm::Register::*;
 use crate::patch::code::arm::data::{add, sub, cmp, mov, mul};
-use crate::patch::code::arm::ls::{ldr, ldrb, str_, strb};
+use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
 use crate::{Layout, Result, SeedInfo, patch::util::prize_flag, regions};
@@ -28,6 +29,8 @@ pub struct Code {
     text_end: u32,
     rodata: u32,
     rodata_end: u32,
+    freespace: u32,
+    freespace_end: u32,
     ips: Ips,
 }
 
@@ -38,8 +41,10 @@ impl Code {
         let text_end = exheader.get_rodata_address();
         let rodata = exheader.get_rodata_address() + exheader.get_rodata_size();
         let rodata_end = exheader.get_data_address();
+        let freespace = 0x3b7200; // Code at this location is related to Shadow Link, so it can be freely overwritten
+        let freespace_end = 0x3bb680;
         let ips = Ips::new(entry);
-        Self { text, text_end, rodata, rodata_end, ips }
+        Self { text, text_end, rodata, rodata_end, freespace, freespace_end, ips }
     }
 
     pub fn text(&mut self) -> Segment<'_> {
@@ -48,6 +53,10 @@ impl Code {
 
     pub fn rodata(&mut self) -> Segment<'_> {
         Segment { name: "rodata", address: &mut self.rodata, ips: &mut self.ips, end_address: &mut self.rodata_end }
+    }
+
+    pub fn freespace(&mut self) -> Segment<'_> {
+        Segment { name: "freespace", address: &mut self.freespace, ips: &mut self.ips, end_address: &mut self.freespace_end }
     }
 
     pub fn patch<const N: usize>(&mut self, addr: u32, instructions: [Instruction; N]) -> u32 {
@@ -206,6 +215,9 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     if seed_info.is_archipelago() && seed_info.settings.shuffle_maiamai_rewards {
         archipelago_mother_maiamai(&mut code, &seed_info.mother_maiamai_costs);
     }
+    if seed_info.settings.change_freestanding_models {
+        item_models(&mut code, &seed_info.layout, &actor_names);
+    }
     pause_menu_warp(&mut code);
     purple_potion_bottles(&mut code, &seed_info.settings);
     // golden_bees(&mut code);
@@ -302,16 +314,16 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code.overwrite(0x6A03E8, [merchant_right as u8]);
 
     // Hearts
-    code.patch(0x33497C, [ldr(R1, (R4, 0x2E)), mov(R0, R0)]);
+    code.patch(0x33497C, [ldrh(R1, (R4, 0x2E)), mov(R0, R0)]);
 
     // Keys
-    code.patch(0x192E58, [ldr(R1, (R4, 0x2E))]);
+    code.patch(0x192E58, [ldrh(R1, (R4, 0x2E))]);
 
     // Maiamai
-    code.patch(0x514254, [ldr(R1, (R4, 0x30))]);
+    code.patch(0x514254, [ldrh(R1, (R4, 0x30))]);
 
     // Silver and Gold Rupees
-    code.patch(0x1D6DBC, [ldr(R1, (R4, 0x2E)), mov(R0, R0)]);
+    code.patch(0x1D6DBC, [ldrh(R1, (R4, 0x2E)), mov(R0, R0)]);
 
     // Premium Milk
     if seed_info.is_archipelago() || seed_info.layout.find_single(LetterInABottle).is_none() {
@@ -875,7 +887,7 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
-// Patches for Mother Maiamai in Archipelago with randomized items
+/// Patches for Mother Maiamai in Archipelago with randomized items
 fn archipelago_mother_maiamai(code: &mut Code, mother_maiamai_costs: &[u8]) {
     // Alwas show upgrade dialog if you have items that can be upgraded
     code.patch(0x30fe64, [b(0x30fef0)]);
@@ -965,6 +977,43 @@ fn archipelago_mother_maiamai(code: &mut Code, mother_maiamai_costs: &[u8]) {
         b(0x46d9b4),
     ]);
     code.patch(0x46d9b0, [b(set_cancel_alpha)]);
+}
+
+/// Replace freestanding item models
+fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32>) {
+    // Load heart piece / container BCH index from arg 0
+    code.patch(0x334cb4, [ldrh(R2, (R4, 0x2C))]);
+    // Load small key BCH index from arg 2
+    code.patch(0x193758, [ldrh(R2, (R4, 0x30))]);
+
+    // Create new BCH lists
+    for (data, offset) in [
+        (HEART_PIECES.iter(), 0x707f34),
+        (HEART_CONTAINERS.iter(), 0x707f30),
+        (SMALL_KEYS.iter(), 0x707d24),
+    ] {
+        let bch_list = code.freespace().declare(
+            data
+                .flat_map(|(name, _, _, _)|
+                    VTABLE_STRING.to_le_bytes()
+                        .into_iter()
+                        .chain(actor_names
+                            .get(&layout.get_by_name(name).normalize())
+                            .unwrap()
+                            .to_le_bytes()
+                            .into_iter()))
+                .collect::<Vec<_>>()
+        );
+        code.overwrite(offset, bch_list.to_le_bytes());
+    }
+
+    // Set new BCH counts
+    code.overwrite(0x693d8d, [HEART_PIECES.len() as u8]);
+    code.overwrite(0x693d8c, [HEART_CONTAINERS.len() as u8]);
+    code.overwrite(0x693d09, [SMALL_KEYS.len() as u8]);
+
+    // Get small key models from stage archive instead of ActorCommon
+    code.overwrite(0x693a89, [1]);
 }
 
 fn pause_menu_warp(code: &mut Code) {
@@ -1488,7 +1537,7 @@ fn actor_names(code: &mut Code) -> HashMap<Item, u32> {
     let mut map = IntoIterator::into_iter(ACTOR_NAME_OFFSETS).collect::<HashMap<_, _>>();
     map.extend(IntoIterator::into_iter(ACTOR_NAMES).map(|(item, name)| {
         let name = format!("{}\0", name);
-        (item, code.rodata().declare(name.as_bytes()))
+        (item, code.freespace().declare(name.as_bytes()))
     }));
     map
 }
@@ -1497,7 +1546,7 @@ fn item_names(code: &mut Code) -> HashMap<Item, u32> {
     let mut map = IntoIterator::into_iter(ITEM_NAME_OFFSETS).collect::<HashMap<_, _>>();
     map.extend(IntoIterator::into_iter(ITEM_NAMES).map(|(item, name)| {
         let name = format!("item_name_{}\0", name);
-        (item, code.rodata().declare(name.as_bytes()))
+        (item, code.freespace().declare(name.as_bytes()))
     }));
     // log::info!("{map:?}");
     map
