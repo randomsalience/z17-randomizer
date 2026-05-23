@@ -216,6 +216,7 @@ fn plando_settings() -> Settings {
         trials_door: TrialsDoor::OneTrialRequired,
         treacherous_tower_floors: 5,
         purple_potion_bottles: true,
+        start_with_compasses: false,
         night_mode: false,
         user_exclusions: BTreeSet::default(),
     }

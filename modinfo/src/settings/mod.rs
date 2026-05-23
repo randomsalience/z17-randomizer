@@ -209,6 +209,10 @@ pub struct Settings {
     #[pyo3(get, set)]
     pub purple_potion_bottles: bool,
 
+    /// Start With Compasses
+    #[pyo3(get, set)]
+    pub start_with_compasses: bool,
+
     /// Experimental: Change Hyrule to the nighttime color scheme (until visiting Lorule)
     #[pyo3(get, set)]
     pub night_mode: bool,

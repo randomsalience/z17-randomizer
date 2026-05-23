@@ -251,37 +251,85 @@ Item(u16) {
     /// Sage Rosso (FAKE ITEM, acts as stand-in until we can add new GetItems)
     SageRosso = 0x67,
 
-    /// Small Key (Hyrule Sanctuary)
-    SmallKeyHyrule = 0x68,
     /// Small Key (Eastern Palace)
-    SmallKeyEastern = 0x69,
+    SmallKeyEastern = 0x68,
     /// Small Key (House of Gales)
-    SmallKeyGales = 0x6A,
+    SmallKeyGales = 0x69,
     /// Small Key (Tower of Hera)
-    SmallKeyHera = 0x6B,
-    /// Small Key (Lorule Sanctuary)
-    SmallKeyLorule = 0x6C,
+    SmallKeyHera = 0x6A,
     /// Small Key (Dark Palace)
-    SmallKeyDark = 0x6D,
+    SmallKeyDark = 0x6B,
     /// Small Key (Swamp Palace)
-    SmallKeySwamp = 0x6E,
+    SmallKeySwamp = 0x6C,
     /// Small Key (Skull Woods)
-    SmallKeySkull = 0x6F,
+    SmallKeySkull = 0x6D,
     /// Small Key (Thieves' Hideout)
-    SmallKeyThieves = 0x70,
+    SmallKeyThieves = 0x6E,
     /// Small Key (Ice Ruins)
-    SmallKeyIce = 0x71,
+    SmallKeyIce = 0x6F,
     /// Small Key (Desert Palace)
-    SmallKeyDesert = 0x72,
+    SmallKeyDesert = 0x70,
     /// Small Key (Turtle Rock)
-    SmallKeyTurtle = 0x73,
+    SmallKeyTurtle = 0x71,
     /// Small Key (Lorule Castle)
-    SmallKeyCastle = 0x74,
+    SmallKeyCastle = 0x72,
+    /// Small Key (Hyrule Sanctuary)
+    SmallKeyHyrule = 0x73,
+    /// Small Key (Lorule Sanctuary)
+    SmallKeyLorule = 0x74,
+
+    /// Big Key (Eastern Palace)
+    BigKeyEastern = 0x75,
+    /// Big Key (House of Gales)
+    BigKeyGales = 0x76,
+    /// Big Key (Tower of Hera)
+    BigKeyHera = 0x77,
+    /// Big Key (Dark Palace)
+    BigKeyDark = 0x78,
+    /// Big Key (Swamp Palace)
+    BigKeySwamp = 0x79,
+    /// Big Key (Skull Woods)
+    BigKeySkull = 0x7A,
+    /// Big Key (Thieves' Hideout)
+    BigKeyThieves = 0x7B,
+    /// Big Key (Ice Ruins)
+    BigKeyIce = 0x7C,
+    /// Big Key (Desert Palace)
+    BigKeyDesert = 0x7D,
+    /// Big Key (Turtle Rock)
+    BigKeyTurtle = 0x7E,
+
+    /// Compass (Eastern Palace)
+    CompassEastern = 0x7F,
+    /// Compass (House of Gales)
+    CompassGales = 0x80,
+    /// Compass (Tower of Hera)
+    CompassHera = 0x81,
+    /// Compass (Dark Palace)
+    CompassDark = 0x82,
+    /// Compass (Swamp Palace)
+    CompassSwamp = 0x83,
+    /// Compass (Skull Woods)
+    CompassSkull = 0x84,
+    /// Compass (Thieves' Hideout)
+    CompassThieves = 0x85,
+    /// Compass (Ice Ruins)
+    CompassIce = 0x86,
+    /// Compass (Desert Palace)
+    CompassDesert = 0x87,
+    /// Compass (Turtle Rock)
+    CompassTurtle = 0x88,
+    /// Compass (Lorule Castle)
+    CompassCastle = 0x89,
 }}
 
 impl Item {
-    pub const SMALL_KEY_START: u32 = Item::SmallKeyHyrule as u32;
-    pub const SMALL_KEY_END: u32 = Item::SmallKeyCastle as u32;
+    pub const SMALL_KEY_START: u32 = Item::SmallKeyEastern as u32;
+    pub const SMALL_KEY_END: u32 = Item::SmallKeyLorule as u32;
+    pub const BIG_KEY_START: u32 = Item::BigKeyEastern as u32;
+    pub const BIG_KEY_END: u32 = Item::BigKeyTurtle as u32;
+    pub const COMPASS_START: u32 = Item::CompassEastern as u32;
+    pub const COMPASS_END: u32 = Item::CompassCastle as u32;
 
     pub fn new_items() -> impl Iterator<Item = Self> {
         const MAX_BASE_ITEM: Item = Item::GoldenBeeForSale;
@@ -298,11 +346,9 @@ impl Item {
             Item::SageImpa => "sage_impa",
             Item::SageIrene => "sage_irene",
             Item::SageRosso => "sage_rosso",
-            Item::SmallKeyHyrule => "small_key_hyrule",
             Item::SmallKeyEastern => "small_key_eastern",
             Item::SmallKeyGales => "small_key_gales",
             Item::SmallKeyHera => "small_key_hera",
-            Item::SmallKeyLorule => "small_key_lorule",
             Item::SmallKeyDark => "small_key_dark",
             Item::SmallKeySwamp => "small_key_swamp",
             Item::SmallKeySkull => "small_key_skull",
@@ -311,6 +357,29 @@ impl Item {
             Item::SmallKeyDesert => "small_key_desert",
             Item::SmallKeyTurtle => "small_key_turtle",
             Item::SmallKeyCastle => "small_key_castle",
+            Item::SmallKeyHyrule => "small_key_hyrule",
+            Item::SmallKeyLorule => "small_key_lorule",
+            Item::BigKeyEastern => "big_key_eastern",
+            Item::BigKeyGales => "big_key_gales",
+            Item::BigKeyHera => "big_key_hera",
+            Item::BigKeyDark => "big_key_dark",
+            Item::BigKeySwamp => "big_key_swamp",
+            Item::BigKeySkull => "big_key_skull",
+            Item::BigKeyThieves => "big_key_thieves",
+            Item::BigKeyIce => "big_key_ice",
+            Item::BigKeyDesert => "big_key_desert",
+            Item::BigKeyTurtle => "big_key_turtle",
+            Item::CompassEastern => "compass_eastern",
+            Item::CompassGales => "compass_gales",
+            Item::CompassHera => "compass_hera",
+            Item::CompassDark => "compass_dark",
+            Item::CompassSwamp => "compass_swamp",
+            Item::CompassSkull => "compass_skull",
+            Item::CompassThieves => "compass_thieves",
+            Item::CompassIce => "compass_ice",
+            Item::CompassDesert => "compass_desert",
+            Item::CompassTurtle => "compass_turtle",
+            Item::CompassCastle => "compass_castle",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }
@@ -325,19 +394,40 @@ impl Item {
             Item::SageImpa => "Impa has been rescued!",
             Item::SageIrene => "Irene has been rescued!",
             Item::SageRosso => "Rosso has been rescued!",
-            Item::SmallKeyHyrule => "You got a small key to Hyrule Sanctuary!",
-            Item::SmallKeyEastern => "You got a small key to Eastern Palace!",
-            Item::SmallKeyGales => "You got a small key to House of Gales!",
-            Item::SmallKeyHera => "You got a small key to Tower of Hera!",
-            Item::SmallKeyLorule => "You got a small key to Lorule Sanctuary!",
-            Item::SmallKeyDark => "You got a small key to Dark Palace!",
-            Item::SmallKeySwamp => "You got a small key to Swamp Palace!",
-            Item::SmallKeySkull => "You got a small key to Skull Woods!",
-            Item::SmallKeyThieves => "You got a small key to Thieves' Hideout!",
-            Item::SmallKeyIce => "You got a small key to Ice Ruins!",
-            Item::SmallKeyDesert => "You got a small key to Desert Palace!",
-            Item::SmallKeyTurtle => "You got a small key to Turtle Rock!",
-            Item::SmallKeyCastle => "You got a small key to Lorule Castle!",
+            Item::SmallKeyEastern => "You got a small key for Eastern Palace!",
+            Item::SmallKeyGales => "You got a small key for House of Gales!",
+            Item::SmallKeyHera => "You got a small key for Tower of Hera!",
+            Item::SmallKeyDark => "You got a small key for Dark Palace!",
+            Item::SmallKeySwamp => "You got a small key for Swamp Palace!",
+            Item::SmallKeySkull => "You got a small key for Skull Woods!",
+            Item::SmallKeyThieves => "You got a small key for Thieves' Hideout!",
+            Item::SmallKeyIce => "You got a small key for Ice Ruins!",
+            Item::SmallKeyDesert => "You got a small key for Desert Palace!",
+            Item::SmallKeyTurtle => "You got a small key for Turtle Rock!",
+            Item::SmallKeyCastle => "You got a small key for Lorule Castle!",
+            Item::SmallKeyHyrule => "You got a small key for Hyrule Sanctuary!",
+            Item::SmallKeyLorule => "You got a small key for Lorule Sanctuary!",
+            Item::BigKeyEastern => "You got the big key for Eastern Palace!",
+            Item::BigKeyGales => "You got the big key for House of Gales!",
+            Item::BigKeyHera => "You got the big key for Tower of Hera!",
+            Item::BigKeyDark => "You got the big key for Dark Palace!",
+            Item::BigKeySwamp => "You got the big key for Swamp Palace!",
+            Item::BigKeySkull => "You got the big key for Skull Woods!",
+            Item::BigKeyThieves => "You got the big key for Thieves' Hideout!",
+            Item::BigKeyIce => "You got the big key for Ice Ruins!",
+            Item::BigKeyDesert => "You got the big key for Desert Palace!",
+            Item::BigKeyTurtle => "You got the big key for Turtle Rock!",
+            Item::CompassEastern => "You got the compass for Eastern Palace!",
+            Item::CompassGales => "You got the compass for House of Gales!",
+            Item::CompassHera => "You got the compass for Tower of Hera!",
+            Item::CompassDark => "You got the compass for Dark Palace!",
+            Item::CompassSwamp => "You got the compass for Swamp Palace!",
+            Item::CompassSkull => "You got the compass for Skull Woods!",
+            Item::CompassThieves => "You got the compass for Thieves' Hideout!",
+            Item::CompassIce => "You got the compass for Ice Ruins!",
+            Item::CompassDesert => "You got the compass for Desert Palace!",
+            Item::CompassTurtle => "You got the compass for Turtle Rock!",
+            Item::CompassCastle => "You got the compass for Lorule Castle!",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }

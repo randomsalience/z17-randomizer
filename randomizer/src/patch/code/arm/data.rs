@@ -84,6 +84,13 @@ where
     instruction(operand2.into().code(), 0b1101, false, R0, rd)
 }
 
+pub fn orr<O>(rd: Register, rn: Register, operand2: O) -> Instruction
+where
+    O: Into<ShifterOperand>,
+{
+    instruction(operand2.into().code(), 0b1100, false, rn, rd)
+}
+
 pub fn mul(rd: Register, rm: Register, rs: Register) -> Instruction {
     Instruction::new(rm.shift(0) | 0b1001 << 4 | rs.shift(8) | rd.shift(16))
 }

@@ -276,6 +276,7 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         skip_big_bomb_flower,
         treacherous_tower_floors,
         purple_potion_bottles,
+        start_with_compasses: false,
         night_mode: false,
     })
 }

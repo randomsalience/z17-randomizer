@@ -16,7 +16,7 @@ fn to_get_item(item: &Item) -> GetItem {
             // just putting something here temporarily
             GetItem(item.as_str().into(), "Actor/KeySmall.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, -0.4, 0.0,
                 -47.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
-        }
+        },
         Item::SmallKeyHyrule
         | Item::SmallKeyEastern
         | Item::SmallKeyGales
@@ -32,14 +32,39 @@ fn to_get_item(item: &Item) -> GetItem {
         | Item::SmallKeyCastle => {
             GetItem(item.as_str().into(), "Actor/KeySmall.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, -0.4, 0.0,
                 -47.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
-        }
+        },
+        Item::BigKeyEastern
+        | Item::BigKeyGales
+        | Item::BigKeyHera
+        | Item::BigKeyDark
+        | Item::BigKeySwamp
+        | Item::BigKeySkull
+        | Item::BigKeyThieves
+        | Item::BigKeyIce
+        | Item::BigKeyDesert
+        | Item::BigKeyTurtle => {
+            GetItem(item.as_str().into(), "Actor/KeyBoss.bch".into(), 1.0, 0.0, 0.0, -0.2, 0.0, -0.64, 0.0,
+                -56.16, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 1)
+        },
+        Item::CompassEastern
+        | Item::CompassGales
+        | Item::CompassHera
+        | Item::CompassDark
+        | Item::CompassSwamp
+        | Item::CompassSkull
+        | Item::CompassThieves
+        | Item::CompassIce
+        | Item::CompassDesert
+        | Item::CompassTurtle
+        | Item::CompassCastle => {
+            GetItem(item.as_str().into(), "Actor/Compass.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, -0.1, 0.0,
+                -11.6, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
         _ => { panic!("No get item entry found for item {}", item.as_str()); }
     }
 }
 
 /// GetItem.byaml patches
-/// FIXME causes visual effects to stop working for... some reason.
-#[allow(unused)]
 pub fn patch(patcher: &mut Patcher) -> Result<()> {
     // Read and deserialize GetItem.byaml from RegionBoot
     let raw = patcher.boot.archive.get_mut().read("World/Byaml/GetItem.byaml").unwrap();

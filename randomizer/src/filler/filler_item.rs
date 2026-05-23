@@ -983,12 +983,29 @@ impl Item {
             | LoruleCastleKeySmall05 => game::Item::SmallKeyCastle,
 
             // Big Keys
-            EasternKeyBig | GalesKeyBig | HeraKeyBig | DarkKeyBig | SwampKeyBig | SkullKeyBig | ThievesKeyBig
-            | IceKeyBig | DesertKeyBig | TurtleKeyBig => game::Item::KeyBoss,
+            EasternKeyBig => game::Item::BigKeyEastern,
+            GalesKeyBig => game::Item::BigKeyGales,
+            HeraKeyBig => game::Item::BigKeyHera,
+            DarkKeyBig => game::Item::BigKeyDark,
+            SwampKeyBig => game::Item::BigKeySwamp,
+            SkullKeyBig => game::Item::BigKeySkull,
+            ThievesKeyBig => game::Item::BigKeyThieves,
+            IceKeyBig => game::Item::BigKeyIce,
+            DesertKeyBig => game::Item::BigKeyDesert,
+            TurtleKeyBig => game::Item::BigKeyTurtle,
 
             // Compasses
-            EasternCompass | GalesCompass | HeraCompass | DarkCompass | SwampCompass | SkullCompass
-            | ThievesCompass | IceCompass | DesertCompass | TurtleCompass | LoruleCastleCompass => game::Item::Compass,
+            EasternCompass => game::Item::CompassEastern,
+            GalesCompass => game::Item::CompassGales,
+            HeraCompass => game::Item::CompassHera,
+            DarkCompass => game::Item::CompassDark,
+            SwampCompass => game::Item::CompassSwamp,
+            SkullCompass => game::Item::CompassSkull,
+            ThievesCompass => game::Item::CompassThieves,
+            IceCompass => game::Item::CompassIce,
+            DesertCompass => game::Item::CompassDesert,
+            TurtleCompass => game::Item::CompassTurtle,
+            LoruleCastleCompass => game::Item::CompassCastle,
 
             GreatSpin => game::Item::SpecialMove,
             RupeeGreen => game::Item::RupeeG,

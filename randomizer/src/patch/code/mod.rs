@@ -3,7 +3,7 @@ use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
 use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
 use crate::patch::code::arm::Register::*;
-use crate::patch::code::arm::data::{add, sub, cmp, mov, mul};
+use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr};
 use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
@@ -201,6 +201,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code.overwrite(0x17A430, [0xFF]);
 
     new_items(&mut code);
+    starting_gear(&mut code, &seed_info.settings);
     remove_charm_from_gear_menu(&mut code);
     fix_joystick_rotation(&mut code);
     rental_items(&mut code);
@@ -661,11 +662,9 @@ fn new_items(code: &mut Code) {
 
     // Courses in the order of the get item keys
     let course_table = code.rodata().declare([
-        Course::CaveLight as u8,
         Course::DungeonEast as u8,
         Course::DungeonWind as u8,
         Course::DungeonHera as u8,
-        Course::AttractionDark as u8,
         Course::DungeonDark as u8,
         Course::DungeonWater as u8,
         Course::DungeonDokuro as u8,
@@ -674,6 +673,8 @@ fn new_items(code: &mut Code) {
         Course::DungeonSand as u8,
         Course::DungeonKame as u8,
         Course::DungeonGanon as u8,
+        Course::CaveLight as u8,
+        Course::AttractionDark as u8,
     ]);
 
     let not_new_item = code.text().define([
@@ -718,7 +719,110 @@ fn new_items(code: &mut Code) {
         b(0x344f00),
     ]);
 
-    code.patch(0x3459c0, [b(fn_add_small_key)]);
+    // Code for gaining a big key
+    let fn_add_big_key = code.text().define([
+        // Check if item is big key
+        cmp(R0, Item::BIG_KEY_START),
+        b(fn_add_small_key).lt(),
+        cmp(R0, Item::BIG_KEY_END),
+        b(fn_add_small_key).gt(),
+
+        // Get course associated to key
+        sub(R0, R0, Item::BIG_KEY_START),
+        ldr(R1, course_table),
+        ldrb(R1, (R1, R0)),
+
+        // Get current course
+        ldr(R2, GAME_MANAGER),
+        ldr(R2, (R2, 0)),
+        ldrb(R2, (R2, 0x18)),
+
+        // Load player inventory
+        ldr(R3, PLAYER_OBJECT_SINGLETON),
+        ldr(R3, (R3, 0)),
+        ldr(R3, (R3, 0x10)),
+        add(R3, R3, 0x400),
+        add(R3, R3, 0xC),
+
+        // Increment key count
+        cmp(R1, R2),
+        add(R2, R1, 0x14C),
+        ldrb(R0, (R3, 0x25)).eq(),
+        ldrb(R0, (R3, R2)).ne(),
+        add(R0, R0, 1),
+        strb(R0, (R3, 0x25)).eq(),
+        strb(R0, (R3, R2)).ne(),
+
+        b(0x344f00),
+    ]);
+
+    // Code for gaining a compass
+    let fn_add_compass = code.text().define([
+        // Check if item is compass
+        cmp(R0, Item::COMPASS_START),
+        b(fn_add_big_key).lt(),
+        cmp(R0, Item::COMPASS_END),
+        b(fn_add_big_key).gt(),
+
+        // Get course associated to compass
+        sub(R0, R0, Item::COMPASS_START),
+        ldr(R1, course_table),
+        ldrb(R5, (R1, R0)),
+
+        // Get course data
+        ldr(R2, MAP_MANAGER),
+        ldr(R2, (R2, 0)),
+        mov(R3, 0x16c),
+        mul(R1, R5, R3),
+        add(R1, R1, 0x44),
+        add(R0, R2, R1),
+
+        // Set flag 0 for the course
+        mov(R1, 0),
+        mov(R2, 1),
+        bl(0x1bb724),
+
+        // Set flag 0 in the save data
+        ldr(R0, SAVE_MANAGER),
+        ldr(R0, (R0, 0)),
+        add(R0, R0, 0x18),
+        mov(R3, 0x40),
+        mul(R2, R5, R3),
+        add(R0, R0, R2),
+        ldr(R1, (R0, 0)),
+        orr(R1, R1, 1),
+        str_(R1, (R0, 0)),
+
+        b(0x344f00),
+    ]);
+
+    code.patch(0x3459c0, [b(fn_add_compass)]);
+}
+
+fn starting_gear(code: &mut Code, settings: &Settings) {
+    if !settings.start_with_compasses {
+        return;
+    }
+
+    let start_compasses = code.text().define([
+        mov(R2, 1),
+        add(R3, R0, 0x560),
+        str_(R2, (R3, 0x240)),
+        str_(R2, (R3, 0x280)),
+        str_(R2, (R3, 0x2c0)),
+        str_(R2, (R3, 0x300)),
+        str_(R2, (R3, 0x340)),
+        str_(R2, (R3, 0x380)),
+        str_(R2, (R3, 0x3c0)),
+        str_(R2, (R3, 0x400)),
+        str_(R2, (R3, 0x440)),
+        str_(R2, (R3, 0x480)),
+        str_(R2, (R3, 0x4c0)),
+        str_(R2, (R3, 0x500)),
+        bl(0x4a143c),
+        b(0x1df5b4),
+    ]);
+    code.patch(0x1df5b0, [b(start_compasses)]);
 }
 
 /// The game will show a green orb on the gear menu whether you have the Charm or the full Pendant
@@ -1683,7 +1787,7 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 32] = [
     (HeartPiece, 0x5D7B94),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 58] = [
+const ACTOR_NAMES: [(Item, &str); 79] = [
     (KeyBoss, "KeyBoss"),
     (TriforceCourage, "BadgeBee"),
     (Compass, "Compass"),
@@ -1742,6 +1846,27 @@ const ACTOR_NAMES: [(Item, &str); 58] = [
     (SmallKeyDesert, "KeySmall"),
     (SmallKeyTurtle, "KeySmall"),
     (SmallKeyCastle, "KeySmall"),
+    (BigKeyEastern, "KeyBoss"),
+    (BigKeyGales, "KeyBoss"),
+    (BigKeyHera, "KeyBoss"),
+    (BigKeyDark, "KeyBoss"),
+    (BigKeySwamp, "KeyBoss"),
+    (BigKeySkull, "KeyBoss"),
+    (BigKeyThieves, "KeyBoss"),
+    (BigKeyIce, "KeyBoss"),
+    (BigKeyDesert, "KeyBoss"),
+    (BigKeyTurtle, "KeyBoss"),
+    (CompassEastern, "Compass"),
+    (CompassGales, "Compass"),
+    (CompassHera, "Compass"),
+    (CompassDark, "Compass"),
+    (CompassSwamp, "Compass"),
+    (CompassSkull, "Compass"),
+    (CompassThieves, "Compass"),
+    (CompassIce, "Compass"),
+    (CompassDesert, "Compass"),
+    (CompassTurtle, "Compass"),
+    (CompassCastle, "Compass"),
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1769,7 +1894,7 @@ const ITEM_NAME_OFFSETS: [(Item, u32); 20] = [
     (RupeeGold, 0x6f9be2),       // item_name_sandrod_rental
 ];
 
-const ITEM_NAMES: [(Item, &str); 70] = [
+const ITEM_NAMES: [(Item, &str); 91] = [
     (BadgeBee, "beebadge"),
     (Compass, "compass"),
     (ItemBell, "bell"),
@@ -1840,6 +1965,27 @@ const ITEM_NAMES: [(Item, &str); 70] = [
     (SmallKeyDesert, "small_key_desert"),
     (SmallKeyTurtle, "small_key_turtle"),
     (SmallKeyCastle, "small_key_castle"),
+    (BigKeyEastern, "big_key_eastern"),
+    (BigKeyGales, "big_key_gales"),
+    (BigKeyHera, "big_key_hera"),
+    (BigKeyDark, "big_key_dark"),
+    (BigKeySwamp, "big_key_swamp"),
+    (BigKeySkull, "big_key_skull"),
+    (BigKeyThieves, "big_key_thieves"),
+    (BigKeyIce, "big_key_ice"),
+    (BigKeyDesert, "big_key_desert"),
+    (BigKeyTurtle, "big_key_turtle"),
+    (CompassEastern, "compass_eastern"),
+    (CompassGales, "compass_gales"),
+    (CompassHera, "compass_hera"),
+    (CompassDark, "compass_dark"),
+    (CompassSwamp, "compass_swamp"),
+    (CompassSkull, "compass_skull"),
+    (CompassThieves, "compass_thieves"),
+    (CompassIce, "compass_ice"),
+    (CompassDesert, "compass_desert"),
+    (CompassTurtle, "compass_turtle"),
+    (CompassCastle, "compass_castle"),
 ];
 
 const EVENT_FLAG_PTR: u32 = 0x70B728;
@@ -1856,9 +2002,9 @@ const FN_SET_EVENT_FLAG: u32 = 0x4CDF40;
 /// r2: new flag value (0 or 1)
 // const FN_SET_LOCAL_FLAG_3: u32 = 0x1bb724;
 
-// const MAP_MANAGER_INSTANCE: u32 = 0x70c8e0;
+const MAP_MANAGER: u32 = 0x70c8e0;
 // const PTR_MAP_MANAGER_INSTANCE: u32 = 0x27320c;
 const PLAYER_OBJECT_SINGLETON: u32 = 0x70FB60;
 const GAME_MANAGER: u32 = 0x709DF8;
-// const SAVE_MANAGER: u32 = 0x711de8;
+const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;
