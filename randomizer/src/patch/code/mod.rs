@@ -665,7 +665,7 @@ fn new_items(code: &mut Code) {
         Course::DungeonEast as u8,
         Course::DungeonWind as u8,
         Course::DungeonHera as u8,
-        Course::CaveDark as u8,
+        Course::AttractionDark as u8,
         Course::DungeonDark as u8,
         Course::DungeonWater as u8,
         Course::DungeonDokuro as u8,
