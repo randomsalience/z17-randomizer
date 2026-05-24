@@ -120,7 +120,7 @@ impl MsbtFile {
         }
 
         let lbl1_content_size = 0x4 + hash_table_buffer.len() + labels_buffer.len();
-        let lbl1_block_size = (lbl1_content_size & 0xFFFFFFF0) + 0x20;
+        let lbl1_block_size = (lbl1_content_size + 0x1F) & 0xFFFFFFF0;
 
         let mut lbl1_block = Vec::with_capacity(lbl1_block_size);
         lbl1_block.extend_from_slice(b"LBL1");
@@ -147,7 +147,7 @@ impl MsbtFile {
         }
 
         let txt2_content_size = 0x4 + msg_offset_buffer.len() + msgs_buffer.len();
-        let txt2_block_size = (txt2_content_size & 0xFFFFFFF0) + 0x20;
+        let txt2_block_size = (txt2_content_size + 0x1F) & 0xFFFFFFF0;
 
         let mut txt2_block: Vec<u8> = Vec::with_capacity(txt2_block_size);
         txt2_block.extend_from_slice(b"TXT2");

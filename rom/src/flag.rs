@@ -202,6 +202,19 @@ impl Flag {
         // Hopefully unused flags that we use for randomizer
         861: NPC_HINOX,
         862: ZELDA_BOW,
+        // 863 - 872: Used for Mother Maiamai
+        873: UPGRADE_START,
+        873: UPGRADE_ICE_ROD,
+        874: UPGRADE_SAND_ROD,
+        875: UPGRADE_TORNADO_ROD,
+        876: UPGRADE_BOMBS,
+        877: UPGRADE_FIRE_ROD,
+        878: UPGRADE_HOOKSHOT,
+        879: UPGRADE_BOOMERANG,
+        880: UPGRADE_HAMMER,
+        881: UPGRADE_BOW,
+        882: UPGRADE_LAMP,
+        883: UPGRADE_NET,
         // ...
         920: WV_YOUR_HOUSE,
         921: WV_KAKARIKO_VILLAGE,

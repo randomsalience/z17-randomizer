@@ -8,6 +8,7 @@ use modinfo::settings::cracks::Cracks;
 use modinfo::settings::keysy::Keysy;
 use modinfo::settings::logic::LogicMode;
 use modinfo::settings::nice_items::NiceItems;
+use modinfo::settings::super_items::SuperItems;
 use modinfo::Settings;
 use rand::{rngs::StdRng, Rng};
 use std::cmp::Ordering;
@@ -47,14 +48,26 @@ pub(crate) fn get_item_pools(rng: &mut StdRng, SeedInfo { settings, .. }: &SeedI
         NiceItems::Vanilla | NiceItems::Shuffled => progression_items.extend_from_slice(&[
             Bow02, Boomerang02, Hookshot02, Hammer02, Bombs02, FireRod02, IceRod02, TornadoRod02, SandRod02,
         ]),
+        NiceItems::Upgrades => progression_items.extend_from_slice(&[
+            UpgradeBow, UpgradeBoomerang, UpgradeHookshot, UpgradeHammer, UpgradeBombs,
+            UpgradeFireRod, UpgradeIceRod, UpgradeTornadoRod, UpgradeSandRod,
+        ]),
         NiceItems::Off => delta_junk_items += 9,
     }
 
     // Replaces two pieces of junk with an extra Lamp and Net
-    if settings.super_items {
-        delta_junk_items -= 2;
-        progression_items.push(Lamp02);
-        progression_items.push(Net02);
+    match settings.super_items {
+        SuperItems::Shuffled => {
+            delta_junk_items -= 2;
+            progression_items.push(Lamp02);
+            progression_items.push(Net02);
+        },
+        SuperItems::Off => {},
+        SuperItems::Upgrades => {
+            delta_junk_items -= 2;
+            progression_items.push(UpgradeLamp);
+            progression_items.push(UpgradeNet);
+        },
     }
 
     // Ravio's Bracelets

@@ -321,6 +321,29 @@ Item(u16) {
     CompassTurtle = 0x88,
     /// Compass (Lorule Castle)
     CompassCastle = 0x89,
+
+    /// Ice Rod Upgrade
+    UpgradeIceRod = 0x8a,
+    /// Sand Rod Upgrade
+    UpgradeSandRod = 0x8b,
+    /// Tornado Rod Upgrade,
+    UpgradeTornadoRod = 0x8c,
+    /// Bombs Upgrade
+    UpgradeBombs = 0x8d,
+    /// Fire Rod Upgrade
+    UpgradeFireRod = 0x8e,
+    /// Hookshot Upgrade
+    UpgradeHookshot = 0x8f,
+    /// Boomerang Upgrade
+    UpgradeBoomerang = 0x90,
+    /// Hammer Upgrade
+    UpgradeHammer = 0x91,
+    /// Bow Upgrade
+    UpgradeBow = 0x92,
+    /// Lamp Upgrade
+    UpgradeLamp = 0x93,
+    /// Bug Net Upgrade
+    UpgradeNet = 0x94,
 }}
 
 impl Item {
@@ -330,6 +353,8 @@ impl Item {
     pub const BIG_KEY_END: u32 = Item::BigKeyTurtle as u32;
     pub const COMPASS_START: u32 = Item::CompassEastern as u32;
     pub const COMPASS_END: u32 = Item::CompassCastle as u32;
+    pub const UPGRADE_START: u32 = Item::UpgradeIceRod as u32;
+    pub const UPGRADE_END: u32 = Item::UpgradeNet as u32;
 
     pub fn new_items() -> impl Iterator<Item = Self> {
         const MAX_BASE_ITEM: Item = Item::GoldenBeeForSale;
@@ -380,6 +405,17 @@ impl Item {
             Item::CompassDesert => "compass_desert",
             Item::CompassTurtle => "compass_turtle",
             Item::CompassCastle => "compass_castle",
+            Item::UpgradeIceRod => "upgrade_ice_rod",
+            Item::UpgradeSandRod => "upgrade_sand_rod",
+            Item::UpgradeTornadoRod => "upgrade_tornado_rod",
+            Item::UpgradeBombs => "upgrade_bombs",
+            Item::UpgradeFireRod => "upgrade_fire_rod",
+            Item::UpgradeHookshot => "upgrade_hookshot",
+            Item::UpgradeBoomerang => "upgrade_boomerang",
+            Item::UpgradeHammer => "upgrade_hammer",
+            Item::UpgradeBow => "upgrade_bow",
+            Item::UpgradeLamp => "upgrade_lamp",
+            Item::UpgradeNet => "upgrade_net",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }
@@ -428,6 +464,17 @@ impl Item {
             Item::CompassDesert => "You got the compass for Desert Palace!",
             Item::CompassTurtle => "You got the compass for Turtle Rock!",
             Item::CompassCastle => "You got the compass for Lorule Castle!",
+            Item::UpgradeIceRod => "Your Ice Rod will be upgraded!",
+            Item::UpgradeSandRod => "Your Sand Rod will be upgraded!",
+            Item::UpgradeTornadoRod => "Your Tornado Rod will be upgraded!",
+            Item::UpgradeBombs => "Your Bombs will be upgraded!",
+            Item::UpgradeFireRod => "Your Fire Rod will be upgraded!",
+            Item::UpgradeHookshot => "Your Hookshot will be upgraded!",
+            Item::UpgradeBoomerang => "Your Boomerang will be upgraded!",
+            Item::UpgradeHammer => "Your Hammer will be upgraded!",
+            Item::UpgradeBow => "Your Bow will be upgraded!",
+            Item::UpgradeLamp => "Your Lamp will be upgraded!",
+            Item::UpgradeNet => "Your Bug Net will be upgraded!",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }

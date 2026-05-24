@@ -883,6 +883,17 @@ pub enum Item {
     // Items for additional modes
     Merge01,
     Merge02,
+    UpgradeIceRod,
+    UpgradeSandRod,
+    UpgradeTornadoRod,
+    UpgradeBombs,
+    UpgradeFireRod,
+    UpgradeHookshot,
+    UpgradeBoomerang,
+    UpgradeHammer,
+    UpgradeBow,
+    UpgradeLamp,
+    UpgradeNet,
 }
 
 impl Item {
@@ -1070,6 +1081,18 @@ impl Item {
             TriforceOfCourage => game::Item::TriforceCourage,
 
             Merge01 | Merge02 => game::Item::RingRental,
+
+            UpgradeIceRod => game::Item::UpgradeIceRod,
+            UpgradeSandRod => game::Item::UpgradeSandRod,
+            UpgradeTornadoRod => game::Item::UpgradeTornadoRod,
+            UpgradeBombs => game::Item::UpgradeBombs,
+            UpgradeFireRod => game::Item::UpgradeFireRod,
+            UpgradeHookshot => game::Item::UpgradeHookshot,
+            UpgradeBoomerang => game::Item::UpgradeBoomerang,
+            UpgradeHammer => game::Item::UpgradeHammer,
+            UpgradeBow => game::Item::UpgradeBow,
+            UpgradeLamp => game::Item::UpgradeLamp,
+            UpgradeNet => game::Item::UpgradeNet,
         }
     }
 
@@ -1206,6 +1229,8 @@ impl Item {
 
             Quake => "",
             Merge01 | Merge02 => "a",
+            UpgradeIceRod | UpgradeSandRod | UpgradeTornadoRod | UpgradeBombs | UpgradeFireRod | UpgradeHookshot
+            | UpgradeBoomerang | UpgradeHammer | UpgradeBow | UpgradeLamp | UpgradeNet => "the",
         }
     }
 
@@ -1344,6 +1369,17 @@ impl Item {
             TriforceOfCourage => "Triforce of Courage",
             Quake => "Quake",
             Merge01 | Merge02 => "Merge+",
+            UpgradeIceRod => "Ice Rod Upgrade",
+            UpgradeSandRod => "Sand Rod Upgrade",
+            UpgradeTornadoRod => "Tornado Rod Upgrade",
+            UpgradeBombs => "Bomb Upgrade",
+            UpgradeFireRod => "Fire Rod Upgrade",
+            UpgradeHookshot => "Hookshot Upgrade",
+            UpgradeBoomerang => "Boomerang Upgrade",
+            UpgradeHammer => "Hammer Upgrade",
+            UpgradeBow => "Bow Upgrade",
+            UpgradeLamp => "Lamp Upgrade",
+            UpgradeNet => "Net Upgrade",
         }
     }
 

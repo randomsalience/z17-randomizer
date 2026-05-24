@@ -6,6 +6,7 @@ pub use crate::settings::logic::LogicMode;
 pub use crate::settings::nice_items::NiceItems;
 pub use crate::settings::pedestal::PedestalSetting;
 pub use crate::settings::ravios_shop::RaviosShop;
+pub use crate::settings::super_items::SuperItems;
 pub use crate::settings::trials_door::TrialsDoor;
 pub use crate::settings::weather_vanes::WeatherVanes;
 use log::info;
@@ -21,6 +22,7 @@ pub mod hint_ghosts;
 pub mod keysy;
 pub mod logic;
 pub mod nice_items;
+pub mod super_items;
 pub mod pedestal;
 pub mod ravios_shop;
 pub mod trials_door;
@@ -88,7 +90,7 @@ pub struct Settings {
     /// Shuffle Super Lamp and Super Net
     #[serde(default)]
     #[pyo3(get, set)]
-    pub super_items: bool,
+    pub super_items: SuperItems,
 
     /// Lamp & Net as Weapons
     #[serde(default)]
@@ -251,7 +253,7 @@ impl Settings {
         info!("Yuga Ganon Requirement:         {} Portraits", self.yuganon_requirement);
         info!("Pedestal Requirement:           {}", self.ped_requirement);
 
-        info!("Super Items:                    {}", if self.super_items { "Shuffled" } else { "Not Shuffled" });
+        info!("Super Items:                    {}", self.super_items);
         info!("Progression-Granting Enemies:   {}", if self.no_progression_enemies { "Removed" } else { "Vanilla" });
 
         info!("Maiamai:                        {}", if self.maiamai_madness { "Madness" } else { "Not Randomized" });

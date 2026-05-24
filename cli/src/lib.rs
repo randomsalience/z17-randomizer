@@ -5,6 +5,7 @@ use modinfo::settings::hint_ghosts::HintGhosts;
 use modinfo::settings::keysy::Keysy;
 use modinfo::settings::nice_items::NiceItems;
 use modinfo::settings::ravios_shop::RaviosShop;
+use modinfo::settings::super_items::SuperItems;
 use modinfo::settings::trials_door::TrialsDoor;
 use modinfo::settings::weather_vanes::WeatherVanes;
 use modinfo::settings::{logic::LogicMode, pedestal::PedestalSetting, Settings};
@@ -57,15 +58,21 @@ pub fn get_seed_settings() -> Result<Settings, String> {
         "Choose how to handle Nice Items and Mother Maiamai's upgrades:\n\
         [0] Vanilla  - Nice Items are obtained as upgrades from Mother Maiamai.\n\
         [1] Shuffled - Freely shuffles two progressive copies of each Ravio Item, and randomizes Mother Maiamai's rewards.\n\
-        [2] Off      - Removes Nice Items from the game, and randomizes Mother Maiamai's rewards.",
+        [2] Off      - Removes Nice Items from the game, and randomizes Mother Maiamai's rewards.\n\
+        [3] Upgrades - Shuffles in Upgrades for the Ravio Items which give you the Nice Item once the regular item has been obtained.",
+        0,
+        3,
+    ))?;
+
+    let super_items = SuperItems::try_from(prompt_u8_in_range(
+        "Shuffle Super Items",
+        "Choose how to handle Super Items:\n\
+        [0] Shuffled - Shuffles two progressive copies of the Lamp and Net.\n\
+        [1] Off      - Shuffles only one copy of the Lamp and Net.\n\
+        [2] Upgrades - Shuffles one copy of the Lamp and Net, as well as Upgrades for the Lamp and Net.",
         0,
         2,
     ))?;
-
-    let super_items = prompt_bool(
-        "Shuffle Super Items",
-        "This shuffles a second progressive copy of the Lamp and Net into the general item pool.",
-    );
 
     let lamp_and_net_as_weapons = prompt_bool(
         "Lamp & Net as Weapons (advanced)",

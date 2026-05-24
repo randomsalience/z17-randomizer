@@ -16,7 +16,7 @@ mod albwrandomizer {
     #[pymodule_export]
     use modinfo::settings::{
         Cracks, Cracksanity, HintGhosts, Keysy, LogicMode, NiceItems,
-        PedestalSetting, RaviosShop, TrialsDoor, WeatherVanes
+        PedestalSetting, RaviosShop, SuperItems, TrialsDoor, WeatherVanes
     };
 
     #[pymodule_export]

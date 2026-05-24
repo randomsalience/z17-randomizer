@@ -5,7 +5,7 @@ use modinfo::settings::Keysy;
 use modinfo::settings::RaviosShop;
 use modinfo::settings::TrialsDoor;
 use modinfo::settings::WeatherVanes;
-use modinfo::settings::{Cracks, NiceItems};
+use modinfo::settings::{Cracks, NiceItems, SuperItems};
 use modinfo::settings::{Cracksanity, LogicMode, PedestalSetting, Settings};
 use randomizer::filler::cracks::Crack;
 use randomizer::filler::filler_item::Item::*;
@@ -191,7 +191,7 @@ fn plando_settings() -> Settings {
         maiamai_limit: 50,
         maiamai_madness: false,
         nice_items: NiceItems::Off,
-        super_items: false,
+        super_items: SuperItems::Off,
         lamp_and_net_as_weapons: false,
         cracks: Cracks::Open,
         cracksanity: Cracksanity::AnyWorldPairs,

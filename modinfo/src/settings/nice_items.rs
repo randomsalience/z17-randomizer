@@ -15,6 +15,9 @@ pub enum NiceItems {
     /// Remove and replaces the Nice Items with junk, and Mother Maiamai's rewards are randomized.
     #[default]
     Off,
+
+    /// Replaces Nice Items with upgrades, which give you the Nice Item only if you already have the item
+    Upgrades,
 }
 
 impl TryFrom<u8> for NiceItems {
@@ -25,6 +28,7 @@ impl TryFrom<u8> for NiceItems {
             0 => Ok(Self::Vanilla),
             1 => Ok(Self::Shuffled),
             2 => Ok(Self::Off),
+            3 => Ok(Self::Upgrades),
 
             _ => Err("Invalid NiceItems Setting: {}".to_owned()),
         }
@@ -40,6 +44,7 @@ impl Display for NiceItems {
                 Self::Vanilla => "Vanilla",
                 Self::Shuffled => "Shuffled",
                 Self::Off => "Off",
+                Self::Upgrades => "Upgrades",
             }
         )
     }

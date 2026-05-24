@@ -796,7 +796,27 @@ fn new_items(code: &mut Code) {
         b(0x344f00),
     ]);
 
-    code.patch(0x3459c0, [b(fn_add_compass)]);
+    // Code for gaining an item upgrade
+    let fn_add_upgrade = code.text().define([
+        // Check if item is upgrade
+        cmp(R0, Item::UPGRADE_START),
+        b(fn_add_compass).lt(),
+        cmp(R0, Item::UPGRADE_END),
+        b(fn_add_compass).gt(),
+
+        // Set event flag
+        sub(R0, R0, Item::UPGRADE_START),
+        ldr(R1, Flag::UPGRADE_START.get_value()),
+        add(R1, R0, R1),
+        mov(R2, 1),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        bl(FN_SET_EVENT_FLAG),
+
+        b(0x344f00),
+    ]);
+
+    code.patch(0x3459c0, [b(fn_add_upgrade)]);
 }
 
 fn starting_gear(code: &mut Code, settings: &Settings) {
@@ -1455,7 +1475,10 @@ fn rental_items(code: &mut Code) {
 }
 
 fn progressive_items(code: &mut Code, settings: &Settings) {
-    let return_label = 0x2922C4;
+    let return_label = code.text().define([
+        pop([R1, R2, R4]),
+        b(0x2922C4),
+    ]);
     /*let first_sword = code.text().define([
         ldr(R0, (R0, 0x4C4)),
         cmp(R0, 0),
@@ -1534,7 +1557,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_lamp = code.text().define([
         cmp(R5, 0x1A),
         b(progressive_mail).ne(),
-        ldr(R0, (R0, 0x464)),
+        ldr(R4, (R0, 0x464)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_LAMP.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0x1A).eq(),
         mov(R5, 0x58).ne(),
@@ -1543,7 +1571,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_bow = code.text().define([
         cmp(R5, 0x11),
         b(progressive_lamp).ne(),
-        ldr(R0, (R0, 0x444)),
+        ldr(R4, (R0, 0x444)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_BOW.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0x11).eq(),
         mov(R5, 0x55).ne(),
@@ -1552,7 +1585,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_boomerang = code.text().define([
         cmp(R5, 0xF),
         b(progressive_bow).ne(),
-        ldr(R0, (R0, 0x440)),
+        ldr(R4, (R0, 0x440)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_BOOMERANG.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xF).eq(),
         mov(R5, 0x53).ne(),
@@ -1561,7 +1599,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_hookshot = code.text().define([
         cmp(R5, 0xE),
         b(progressive_boomerang).ne(),
-        ldr(R0, (R0, 0x460)),
+        ldr(R4, (R0, 0x460)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_HOOKSHOT.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xE).eq(),
         mov(R5, 0x52).ne(),
@@ -1570,7 +1613,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_hammer = code.text().define([
         cmp(R5, 0x10),
         b(progressive_hookshot).ne(),
-        ldr(R0, (R0, 0x44C)),
+        ldr(R4, (R0, 0x44C)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_HAMMER.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0x10).eq(),
         mov(R5, 0x54).ne(),
@@ -1579,7 +1627,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_bombs = code.text().define([
         cmp(R5, 0xC),
         b(progressive_hammer).ne(),
-        ldr(R0, (R0, 0x43C)),
+        ldr(R4, (R0, 0x43C)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_BOMBS.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xC).eq(),
         mov(R5, 0x50).ne(),
@@ -1588,7 +1641,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_fire_rod = code.text().define([
         cmp(R5, 0xD),
         b(progressive_bombs).ne(),
-        ldr(R0, (R0, 0x454)),
+        ldr(R4, (R0, 0x454)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_FIRE_ROD.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xD).eq(),
         mov(R5, 0x51).ne(),
@@ -1597,7 +1655,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_ice_rod = code.text().define([
         cmp(R5, 0x9),
         b(progressive_fire_rod).ne(),
-        ldr(R0, (R0, 0x458)),
+        ldr(R4, (R0, 0x458)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_ICE_ROD.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0x9).eq(),
         mov(R5, 0x4D).ne(),
@@ -1606,7 +1669,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_tornado_rod = code.text().define([
         cmp(R5, 0xB),
         b(progressive_ice_rod).ne(),
-        ldr(R0, (R0, 0x45C)),
+        ldr(R4, (R0, 0x45C)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_TORNADO_ROD.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xB).eq(),
         mov(R5, 0x4F).ne(),
@@ -1615,7 +1683,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_sand_rod = code.text().define([
         cmp(R5, 0xA),
         b(progressive_tornado_rod).ne(),
-        ldr(R0, (R0, 0x450)),
+        ldr(R4, (R0, 0x450)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_SAND_ROD.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0xA).eq(),
         mov(R5, 0x4E).ne(),
@@ -1624,15 +1697,108 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     let progressive_net = code.text().define([
         cmp(R5, 0x30),
         b(progressive_sand_rod).ne(),
-        ldr(R0, (R0, 0x468)),
+        ldr(R4, (R0, 0x468)),
+        ldr(R0, EVENT_FLAG_PTR),
+        ldr(R0, (R0, 0)),
+        ldr(R1, Flag::UPGRADE_NET.get_value()),
+        bl(FN_GET_EVENT_FLAG),
+        orr(R0, R0, R4),
         cmp(R0, 0),
         mov(R5, 0x30).eq(),
         mov(R5, 0x59).ne(),
         b(return_label),
     ]);
+    let lamp_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeLamp as u32),
+        b(progressive_net).ne(),
+        ldr(R0, (R0, 0x464)),
+        cmp(R0, 0),
+        mov(R5, 0x58).ne(),
+        b(return_label),
+    ]);
+    let bow_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeBow as u32),
+        b(lamp_upgrade).ne(),
+        ldr(R0, (R0, 0x444)),
+        cmp(R0, 0),
+        mov(R5, 0x55).ne(),
+        b(return_label),
+    ]);
+    let boomerang_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeBoomerang as u32),
+        b(bow_upgrade).ne(),
+        ldr(R0, (R0, 0x440)),
+        cmp(R0, 0),
+        mov(R5, 0x53).ne(),
+        b(return_label),
+    ]);
+    let hookshot_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeHookshot as u32),
+        b(boomerang_upgrade).ne(),
+        ldr(R0, (R0, 0x460)),
+        cmp(R0, 0),
+        mov(R5, 0x52).ne(),
+        b(return_label),
+    ]);
+    let hammer_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeHammer as u32),
+        b(hookshot_upgrade).ne(),
+        ldr(R0, (R0, 0x44C)),
+        cmp(R0, 0),
+        mov(R5, 0x54).ne(),
+        b(return_label),
+    ]);
+    let bomb_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeBombs as u32),
+        b(hammer_upgrade).ne(),
+        ldr(R0, (R0, 0x43C)),
+        cmp(R0, 0),
+        mov(R5, 0x50).ne(),
+        b(return_label),
+    ]);
+    let fire_rod_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeFireRod as u32),
+        b(bomb_upgrade).ne(),
+        ldr(R0, (R0, 0x454)),
+        cmp(R0, 0),
+        mov(R5, 0x51).ne(),
+        b(return_label),
+    ]);
+    let ice_rod_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeIceRod as u32),
+        b(fire_rod_upgrade).ne(),
+        ldr(R0, (R0, 0x458)),
+        cmp(R0, 0),
+        mov(R5, 0x4D).ne(),
+        b(return_label),
+    ]);
+    let tornado_rod_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeTornadoRod as u32),
+        b(ice_rod_upgrade).ne(),
+        ldr(R0, (R0, 0x45C)),
+        cmp(R0, 0),
+        mov(R5, 0x4F).ne(),
+        b(return_label),
+    ]);
+    let sand_rod_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeSandRod as u32),
+        b(tornado_rod_upgrade).ne(),
+        ldr(R0, (R0, 0x450)),
+        cmp(R0, 0),
+        mov(R5, 0x4E).ne(),
+        b(return_label),
+    ]);
+    let net_upgrade = code.text().define([
+        cmp(R5, Item::UpgradeNet as u32),
+        b(sand_rod_upgrade).ne(),
+        ldr(R0, (R0, 0x468)),
+        cmp(R0, 0),
+        mov(R5, 0x59).ne(),
+        b(return_label),
+    ]);
     let progressive_charm = code.text().define([
         cmp(R5, 0x3E),
-        b(progressive_net).ne(),
+        b(net_upgrade).ne(),
         ldr(R0, (R0, 0x4A0)),
         cmp(R0, 0),
         mov(R5, 0x3E).eq(),
@@ -1659,8 +1825,12 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x48).ne(),
         b(return_label),
     ]);
+    let start_progressive = code.text().define([
+        push([R1, R2, R4]),
+        b(progressive_ore),
+    ]);
 
-    code.patch(0x2922A0, [b(progressive_ore)]);
+    code.patch(0x2922A0, [b(start_progressive)]);
 }
 
 fn bracelet(code: &mut Code, settings: &Settings) {
@@ -1752,7 +1922,7 @@ fn item_names(code: &mut Code) -> HashMap<Item, u32> {
     map
 }
 
-const ACTOR_NAME_OFFSETS: [(Item, u32); 32] = [
+const ACTOR_NAME_OFFSETS: [(Item, u32); 41] = [
     (ItemStoneBeauty, 0x5D2060),
     (RupeeR, 0x5D639C),
     (RupeeG, 0x5D639C),
@@ -1785,9 +1955,18 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 32] = [
     (ItemBowLight, 0x5D776C),
     (HeartContainer, 0x5D7B7C),
     (HeartPiece, 0x5D7B94),
+    (Item::UpgradeIceRod, 0x5D6AFC),
+    (Item::UpgradeSandRod, 0x5D6B08),
+    (Item::UpgradeTornadoRod, 0x5D6B18),
+    (Item::UpgradeBombs, 0x5D6B28),
+    (Item::UpgradeFireRod, 0x5D6B30),
+    (Item::UpgradeHookshot, 0x5D6B40),
+    (Item::UpgradeBoomerang, 0x5D6B50),
+    (Item::UpgradeHammer, 0x5D6B60),
+    (Item::UpgradeBow, 0x5D6B6C),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 79] = [
+const ACTOR_NAMES: [(Item, &str); 81] = [
     (KeyBoss, "KeyBoss"),
     (TriforceCourage, "BadgeBee"),
     (Compass, "Compass"),
@@ -1867,6 +2046,8 @@ const ACTOR_NAMES: [(Item, &str); 79] = [
     (CompassDesert, "Compass"),
     (CompassTurtle, "Compass"),
     (CompassCastle, "Compass"),
+    (Item::UpgradeLamp, "GtEvKandelaar"),
+    (Item::UpgradeNet, "GtEvNet"),
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1894,7 +2075,7 @@ const ITEM_NAME_OFFSETS: [(Item, u32); 20] = [
     (RupeeGold, 0x6f9be2),       // item_name_sandrod_rental
 ];
 
-const ITEM_NAMES: [(Item, &str); 91] = [
+const ITEM_NAMES: [(Item, &str); 102] = [
     (BadgeBee, "beebadge"),
     (Compass, "compass"),
     (ItemBell, "bell"),
@@ -1986,6 +2167,17 @@ const ITEM_NAMES: [(Item, &str); 91] = [
     (CompassDesert, "compass_desert"),
     (CompassTurtle, "compass_turtle"),
     (CompassCastle, "compass_castle"),
+    (Item::UpgradeIceRod, "upgrade_ice_rod"),
+    (Item::UpgradeSandRod, "upgrade_sand_rod"),
+    (Item::UpgradeTornadoRod, "upgrade_tornado_rod"),
+    (Item::UpgradeBombs, "upgrade_bombs"),
+    (Item::UpgradeFireRod, "upgrade_fire_rod"),
+    (Item::UpgradeHookshot, "upgrade_hookshot"),
+    (Item::UpgradeBoomerang, "upgrade_boomerang"),
+    (Item::UpgradeHammer, "upgrade_hammer"),
+    (Item::UpgradeBow, "upgrade_bow"),
+    (Item::UpgradeLamp, "upgrade_lamp"),
+    (Item::UpgradeNet, "upgrade_net"),
 ];
 
 const EVENT_FLAG_PTR: u32 = 0x70B728;

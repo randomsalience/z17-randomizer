@@ -132,7 +132,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_super_lamp(&self) -> bool {
-        self.has_both(Item::Lamp01, Item::Lamp02)
+        self.has_amount(2, [Item::Lamp01, Item::Lamp02, Item::UpgradeLamp])
     }
 
     pub fn has_net(&self) -> bool {
@@ -140,7 +140,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_super_net(&self) -> bool {
-        self.has_both(Item::Net01, Item::Net02)
+        self.has_amount(2, [Item::Net01, Item::Net02, Item::UpgradeNet])
     }
 
     pub fn has_bow(&self) -> bool {
@@ -148,7 +148,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_bow(&self) -> bool {
-        self.has_amount(2, [Item::Bow01, Item::Bow02, Item::Bow03])
+        self.has_amount(2, [Item::Bow01, Item::Bow02, Item::Bow03, Item::UpgradeBow])
     }
 
     pub fn has_boomerang(&self) -> bool {
@@ -157,7 +157,7 @@ impl<'s> Progress<'s> {
 
     #[allow(unused)]
     pub fn has_nice_boomerang(&self) -> bool {
-        self.has_both(Item::Boomerang01, Item::Boomerang02)
+        self.has_amount(2, [Item::Boomerang01, Item::Boomerang02, Item::UpgradeBoomerang])
     }
 
     pub fn has_hookshot(&self) -> bool {
@@ -165,7 +165,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_hookshot(&self) -> bool {
-        self.has_both(Item::Hookshot01, Item::Hookshot02)
+        self.has_amount(2, [Item::Hookshot01, Item::Hookshot02, Item::UpgradeHookshot])
     }
 
     pub fn has_hammer(&self) -> bool {
@@ -174,7 +174,7 @@ impl<'s> Progress<'s> {
 
     #[allow(unused)]
     pub fn has_nice_hammer(&self) -> bool {
-        self.has_both(Item::Hammer01, Item::Hammer02)
+        self.has_amount(2, [Item::Hammer01, Item::Hammer02, Item::UpgradeHammer])
     }
 
     pub fn has_bombs(&self) -> bool {
@@ -182,7 +182,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_bombs(&self) -> bool {
-        self.has_both(Item::Bombs01, Item::Bombs02)
+        self.has_amount(2, [Item::Bombs01, Item::Bombs02, Item::UpgradeBombs])
     }
 
     pub fn has_fire_rod(&self) -> bool {
@@ -191,7 +191,7 @@ impl<'s> Progress<'s> {
 
     #[allow(unused)]
     pub fn has_nice_fire_rod(&self) -> bool {
-        self.has_both(Item::FireRod01, Item::FireRod02)
+        self.has_amount(2, [Item::FireRod01, Item::FireRod02, Item::UpgradeFireRod])
     }
 
     pub fn has_ice_rod(&self) -> bool {
@@ -199,7 +199,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_ice_rod(&self) -> bool {
-        self.has_both(Item::IceRod01, Item::IceRod02)
+        self.has_amount(2, [Item::IceRod01, Item::IceRod02, Item::UpgradeIceRod])
     }
 
     pub fn has_tornado_rod(&self) -> bool {
@@ -207,7 +207,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_tornado_rod(&self) -> bool {
-        self.has_both(Item::TornadoRod01, Item::TornadoRod02)
+        self.has_amount(2, [Item::TornadoRod01, Item::TornadoRod02, Item::UpgradeTornadoRod])
     }
 
     pub fn has_sand_rod(&self) -> bool {
@@ -215,7 +215,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_nice_sand_rod(&self) -> bool {
-        self.has_both(Item::SandRod01, Item::SandRod02)
+        self.has_amount(2, [Item::SandRod01, Item::SandRod02, Item::UpgradeSandRod])
     }
 
     pub fn can_use_shield(&self) -> bool {
