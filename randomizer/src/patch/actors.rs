@@ -97,3 +97,10 @@ pub const SMALL_KEYS: [(&str, Course, u16, u16); 15] = [
     ("[TR] (B1) Northeast Room", DungeonKame, 2, 53),
     ("[LS] Ledge", AttractionDark, 2, 31),
 ];
+
+pub const RUPEES: [(&str, Course, u16, u16); 4] = [
+    ("[PD] (2F) South Hidden Room", DungeonDark, 3, 166),
+    ("[TR] (B1) Under Center", DungeonKame, 2, 211),
+    ("[TR] (1F) Under Center", DungeonKame, 1, 114),
+    ("Cucco Mini-Dungeon", AttractionLight, 3, 9),
+];

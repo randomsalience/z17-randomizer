@@ -2,7 +2,7 @@ use crate::filler::cracks::Crack;
 use crate::filler::filler_item::{Randomizable, Vane};
 use crate::regions;
 use crate::{patch::util::*, Error, Result, SeedInfo};
-use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use code::Code;
 use fs_extra::dir::CopyOptions;
 use game::{
@@ -646,7 +646,7 @@ impl Patcher {
             kakariko_actors.add(item_actors.get(&merchant[2]).unwrap().clone())?;
 
             if seed_info.settings.change_freestanding_models {
-                for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter()] {
+                for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {
                     for (name, course, stage, _) in data {
                         let item = seed_info.layout.get_by_name(name).normalize();
                         let stage_actors = courses.get_mut(&course).unwrap().scenes.get_mut(&(stage - 1)).unwrap().actors_mut();

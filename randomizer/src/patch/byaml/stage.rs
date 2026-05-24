@@ -1,7 +1,7 @@
 use crate::filler::cracks::Crack;
 use crate::patch::Patcher;
 use crate::{patch::util::*, regions, Result, SeedInfo};
-use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use game::Course::{self, *};
 use log::info;
 use macros::fail;
@@ -2138,15 +2138,19 @@ fn patch_freestanding_items(patcher: &mut Patcher, settings: &Settings) {
     }
 
     for (index, (_, course, stage, unq)) in HEART_PIECES.iter().enumerate() {
-        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32; })]);
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32 + 1; })]);
     }
 
     for (index, (_, course, stage, unq)) in HEART_CONTAINERS.iter().enumerate() {
-        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32; })]);
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32 + 1; })]);
     }
 
     for (index, (_, course, stage, unq)) in SMALL_KEYS.iter().enumerate() {
-        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.2 = index as i32; })]);
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.2 = index as i32 + 1; })]);
+    }
+
+    for (index, (_, course, stage, unq)) in RUPEES.iter().enumerate() {
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32 + 1; })]);
     }
 }
 

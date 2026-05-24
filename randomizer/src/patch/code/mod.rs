@@ -1,7 +1,7 @@
 use super::Patcher;
 use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
-use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS};
+use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use crate::patch::code::arm::Register::*;
 use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr};
 use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb};
@@ -1205,14 +1205,19 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
     code.patch(0x334cb4, [ldrh(R2, (R4, 0x2C))]);
     // Load small key BCH index from arg 2
     code.patch(0x193758, [ldrh(R2, (R4, 0x30))]);
+    // Load rupee BCH index from arg 0
+    code.patch(0x1d7c2c, [ldrh(R2, (R4, 0x2C))]);
 
     // Create new BCH lists
-    for (data, offset) in [
-        (HEART_PIECES.iter(), 0x707f34),
-        (HEART_CONTAINERS.iter(), 0x707f30),
-        (SMALL_KEYS.iter(), 0x707d24),
+    for (data, offset, orig_bch) in [
+        (HEART_PIECES.iter(), 0x707f34, 0x5d7b94),
+        (HEART_CONTAINERS.iter(), 0x707f30, 0x5d7b7c),
+        (SMALL_KEYS.iter(), 0x707d24, 0x5d6580),
+        (RUPEES.iter(), 0x707e2c, 0x5d639c),
     ] {
-        let bch_list = code.freespace().declare(
+        let bch_list = code.freespace().declare(VTABLE_STRING.to_le_bytes());
+        code.freespace().declare((orig_bch as u32).to_le_bytes());
+        code.freespace().declare(
             data
                 .flat_map(|(name, _, _, _)|
                     VTABLE_STRING.to_le_bytes()
@@ -1228,12 +1233,14 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
     }
 
     // Set new BCH counts
-    code.overwrite(0x693d8d, [HEART_PIECES.len() as u8]);
-    code.overwrite(0x693d8c, [HEART_CONTAINERS.len() as u8]);
-    code.overwrite(0x693d09, [SMALL_KEYS.len() as u8]);
+    code.overwrite(0x693d8d, [HEART_PIECES.len() as u8 + 1]);
+    code.overwrite(0x693d8c, [HEART_CONTAINERS.len() as u8 + 1]);
+    code.overwrite(0x693d09, [SMALL_KEYS.len() as u8 + 1]);
+    code.overwrite(0x693d4b, [RUPEES.len() as u8 + 1]);
 
-    // Get small key models from stage archive instead of ActorCommon
+    // Get models from stage archive instead of ActorCommon
     code.overwrite(0x693a89, [1]);
+    code.overwrite(0x693acb, [1]);
 }
 
 fn pause_menu_warp(code: &mut Code) {
