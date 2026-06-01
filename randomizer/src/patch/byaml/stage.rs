@@ -2150,7 +2150,7 @@ fn patch_freestanding_items(patcher: &mut Patcher, settings: &Settings) {
     }
 
     for (index, (_, course, stage, unq)) in RUPEES.iter().enumerate() {
-        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.0 = index as i32 + 1; })]);
+        patcher.modify_objs(*course, *stage, [call(*unq, move |obj| { obj.arg.2 = index as i32 + 1; })]);
     }
 }
 

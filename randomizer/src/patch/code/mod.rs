@@ -1216,8 +1216,8 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
     code.patch(0x334cb4, [ldrh(R2, (R4, 0x2C))]);
     // Load small key BCH index from arg 2
     code.patch(0x193758, [ldrh(R2, (R4, 0x30))]);
-    // Load rupee BCH index from arg 0
-    code.patch(0x1d7c2c, [ldrh(R2, (R4, 0x2C))]);
+    // Load rupee BCH index from arg 2
+    code.patch(0x1d7c2c, [ldrh(R2, (R4, 0x30))]);
 
     // Create new BCH lists
     for (data, offset, orig_bch) in [
@@ -1493,11 +1493,11 @@ fn rental_items(code: &mut Code) {
 }
 
 fn progressive_items(code: &mut Code, settings: &Settings) {
-    let return_label = code.text().define([
+    let return_label = code.freespace().define([
         pop([R1, R2, R4]),
         b(0x2922C4),
     ]);
-    /*let first_sword = code.text().define([
+    /*let first_sword = code.freespace().define([
         ldr(R0, (R0, 0x4C4)),
         cmp(R0, 0),
         mov(R5, 0x3D).eq(),
@@ -1505,7 +1505,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         b(return_label),
     ]);*/
     let progressive_sword = //if settings.items.captains_sword.is_skipped() {
-        code.text().define([
+        code.freespace().define([
             cmp(R5, 0x1B),
             cmp(R5, 0x1C).ne(),
             b(return_label).ne(),
@@ -1518,7 +1518,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
             b(return_label)
         ]);
     /*} else {
-        code.text().define([
+        code.freespace().define([
             cmp(R5, 0x1B),
             cmp(R5, 0x1C).ne(),
             cmp(R5, 0x3D).ne(),
@@ -1532,7 +1532,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
     };*/
     let progressive_bracelet = match settings.cracks {
         Cracks::Open | Cracks::Closed => {
-            code.text().define([
+            code.freespace().define([
                 cmp(R5, 0x2A),
                 b(progressive_sword).ne(),
                 ldr(R0, (R0, 0x490)),
@@ -1543,7 +1543,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
             ])
         },
         Cracks::Progressive => {
-            code.text().define([
+            code.freespace().define([
                 cmp(R5, 0x2A),
                 b(progressive_sword).ne(),
                 ldr(R0, (R0, 0x490)),
@@ -1554,7 +1554,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
             ])
         }
     };
-    let progressive_glove = code.text().define([
+    let progressive_glove = code.freespace().define([
         cmp(R5, 0x2F),
         b(progressive_bracelet).ne(),
         ldr(R0, (R0, 0x4AC)),
@@ -1563,7 +1563,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x31).ne(),
         b(return_label),
     ]);
-    let progressive_mail = code.text().define([
+    let progressive_mail = code.freespace().define([
         cmp(R5, 0x3F),
         b(progressive_glove).ne(),
         ldr(R0, (R0, 0x4B0)),
@@ -1572,7 +1572,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x40).ne(),
         b(return_label),
     ]);
-    let progressive_lamp = code.text().define([
+    let progressive_lamp = code.freespace().define([
         cmp(R5, 0x1A),
         b(progressive_mail).ne(),
         ldr(R4, (R0, 0x464)),
@@ -1586,7 +1586,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x58).ne(),
         b(return_label),
     ]);
-    let progressive_bow = code.text().define([
+    let progressive_bow = code.freespace().define([
         cmp(R5, 0x11),
         b(progressive_lamp).ne(),
         ldr(R4, (R0, 0x444)),
@@ -1600,7 +1600,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x55).ne(),
         b(return_label),
     ]);
-    let progressive_boomerang = code.text().define([
+    let progressive_boomerang = code.freespace().define([
         cmp(R5, 0xF),
         b(progressive_bow).ne(),
         ldr(R4, (R0, 0x440)),
@@ -1614,7 +1614,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x53).ne(),
         b(return_label),
     ]);
-    let progressive_hookshot = code.text().define([
+    let progressive_hookshot = code.freespace().define([
         cmp(R5, 0xE),
         b(progressive_boomerang).ne(),
         ldr(R4, (R0, 0x460)),
@@ -1628,7 +1628,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x52).ne(),
         b(return_label),
     ]);
-    let progressive_hammer = code.text().define([
+    let progressive_hammer = code.freespace().define([
         cmp(R5, 0x10),
         b(progressive_hookshot).ne(),
         ldr(R4, (R0, 0x44C)),
@@ -1642,7 +1642,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x54).ne(),
         b(return_label),
     ]);
-    let progressive_bombs = code.text().define([
+    let progressive_bombs = code.freespace().define([
         cmp(R5, 0xC),
         b(progressive_hammer).ne(),
         ldr(R4, (R0, 0x43C)),
@@ -1656,7 +1656,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x50).ne(),
         b(return_label),
     ]);
-    let progressive_fire_rod = code.text().define([
+    let progressive_fire_rod = code.freespace().define([
         cmp(R5, 0xD),
         b(progressive_bombs).ne(),
         ldr(R4, (R0, 0x454)),
@@ -1670,7 +1670,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x51).ne(),
         b(return_label),
     ]);
-    let progressive_ice_rod = code.text().define([
+    let progressive_ice_rod = code.freespace().define([
         cmp(R5, 0x9),
         b(progressive_fire_rod).ne(),
         ldr(R4, (R0, 0x458)),
@@ -1684,7 +1684,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4D).ne(),
         b(return_label),
     ]);
-    let progressive_tornado_rod = code.text().define([
+    let progressive_tornado_rod = code.freespace().define([
         cmp(R5, 0xB),
         b(progressive_ice_rod).ne(),
         ldr(R4, (R0, 0x45C)),
@@ -1698,7 +1698,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4F).ne(),
         b(return_label),
     ]);
-    let progressive_sand_rod = code.text().define([
+    let progressive_sand_rod = code.freespace().define([
         cmp(R5, 0xA),
         b(progressive_tornado_rod).ne(),
         ldr(R4, (R0, 0x450)),
@@ -1712,7 +1712,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4E).ne(),
         b(return_label),
     ]);
-    let progressive_net = code.text().define([
+    let progressive_net = code.freespace().define([
         cmp(R5, 0x30),
         b(progressive_sand_rod).ne(),
         ldr(R4, (R0, 0x468)),
@@ -1726,7 +1726,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x59).ne(),
         b(return_label),
     ]);
-    let lamp_upgrade = code.text().define([
+    let lamp_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeLamp as u32),
         b(progressive_net).ne(),
         ldr(R0, (R0, 0x464)),
@@ -1734,7 +1734,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x58).ne(),
         b(return_label),
     ]);
-    let bow_upgrade = code.text().define([
+    let bow_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeBow as u32),
         b(lamp_upgrade).ne(),
         ldr(R0, (R0, 0x444)),
@@ -1742,7 +1742,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x55).ne(),
         b(return_label),
     ]);
-    let boomerang_upgrade = code.text().define([
+    let boomerang_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeBoomerang as u32),
         b(bow_upgrade).ne(),
         ldr(R0, (R0, 0x440)),
@@ -1750,7 +1750,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x53).ne(),
         b(return_label),
     ]);
-    let hookshot_upgrade = code.text().define([
+    let hookshot_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeHookshot as u32),
         b(boomerang_upgrade).ne(),
         ldr(R0, (R0, 0x460)),
@@ -1758,7 +1758,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x52).ne(),
         b(return_label),
     ]);
-    let hammer_upgrade = code.text().define([
+    let hammer_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeHammer as u32),
         b(hookshot_upgrade).ne(),
         ldr(R0, (R0, 0x44C)),
@@ -1766,7 +1766,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x54).ne(),
         b(return_label),
     ]);
-    let bomb_upgrade = code.text().define([
+    let bomb_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeBombs as u32),
         b(hammer_upgrade).ne(),
         ldr(R0, (R0, 0x43C)),
@@ -1774,7 +1774,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x50).ne(),
         b(return_label),
     ]);
-    let fire_rod_upgrade = code.text().define([
+    let fire_rod_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeFireRod as u32),
         b(bomb_upgrade).ne(),
         ldr(R0, (R0, 0x454)),
@@ -1782,7 +1782,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x51).ne(),
         b(return_label),
     ]);
-    let ice_rod_upgrade = code.text().define([
+    let ice_rod_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeIceRod as u32),
         b(fire_rod_upgrade).ne(),
         ldr(R0, (R0, 0x458)),
@@ -1790,7 +1790,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4D).ne(),
         b(return_label),
     ]);
-    let tornado_rod_upgrade = code.text().define([
+    let tornado_rod_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeTornadoRod as u32),
         b(ice_rod_upgrade).ne(),
         ldr(R0, (R0, 0x45C)),
@@ -1798,7 +1798,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4F).ne(),
         b(return_label),
     ]);
-    let sand_rod_upgrade = code.text().define([
+    let sand_rod_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeSandRod as u32),
         b(tornado_rod_upgrade).ne(),
         ldr(R0, (R0, 0x450)),
@@ -1806,7 +1806,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x4E).ne(),
         b(return_label),
     ]);
-    let net_upgrade = code.text().define([
+    let net_upgrade = code.freespace().define([
         cmp(R5, Item::UpgradeNet as u32),
         b(sand_rod_upgrade).ne(),
         ldr(R0, (R0, 0x468)),
@@ -1814,7 +1814,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x59).ne(),
         b(return_label),
     ]);
-    let progressive_charm = code.text().define([
+    let progressive_charm = code.freespace().define([
         cmp(R5, 0x3E),
         b(net_upgrade).ne(),
         ldr(R0, (R0, 0x4A0)),
@@ -1823,7 +1823,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x19).ne(),
         b(return_label),
     ]);
-    let progressive_ore = code.text().define([
+    let progressive_ore = code.freespace().define([
         cmp(R5, 0x42),
         cmp(R5, 0x43).ne(),
         cmp(R5, 0x44).ne(),
@@ -1843,7 +1843,7 @@ fn progressive_items(code: &mut Code, settings: &Settings) {
         mov(R5, 0x48).ne(),
         b(return_label),
     ]);
-    let start_progressive = code.text().define([
+    let start_progressive = code.freespace().define([
         push([R1, R2, R4]),
         b(progressive_ore),
     ]);
