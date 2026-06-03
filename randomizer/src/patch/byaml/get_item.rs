@@ -59,19 +59,49 @@ fn to_get_item(item: &Item) -> GetItem {
             GetItem(item.as_str().into(), "Actor/Compass.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, -0.1, 0.0,
                 -11.6, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
         },
-        Item::UpgradeIceRod
-        | Item::UpgradeSandRod
-        | Item::UpgradeTornadoRod
-        | Item::UpgradeBombs
-        | Item::UpgradeFireRod
-        | Item::UpgradeHookshot
-        | Item::UpgradeBoomerang
-        | Item::UpgradeHammer
-        | Item::UpgradeBow
-        | Item::UpgradeLamp
-        | Item::UpgradeNet => {
-            GetItem(item.as_str().into(), "".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        Item::UpgradeIceRod => {
+            GetItem(item.as_str().into(), "Actor/GtEvRodIceB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeSandRod => {
+            GetItem(item.as_str().into(), "Actor/GtEvRodSandB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeTornadoRod => {
+            GetItem(item.as_str().into(), "Actor/GtEvTornadoB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeBombs => {
+            GetItem(item.as_str().into(), "Actor/BombM.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeFireRod => {
+            GetItem(item.as_str().into(), "Actor/GtEvRodFireB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeHookshot => {
+            GetItem(item.as_str().into(), "Actor/GtEvHookshotB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeBoomerang => {
+            GetItem(item.as_str().into(), "Actor/GtEvBoomerangB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeHammer => {
+            GetItem(item.as_str().into(), "Actor/GtEvHammerB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeBow => {
+            GetItem(item.as_str().into(), "Actor/GtEvBowB.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeLamp => {
+            GetItem(item.as_str().into(), "Actor/GtEvKandelaar.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
+        },
+        Item::UpgradeNet => {
+            GetItem(item.as_str().into(), "Actor/GtEvNet.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
         },
         _ => { panic!("No get item entry found for item {}", item.as_str()); }
     }

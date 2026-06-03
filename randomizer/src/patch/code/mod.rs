@@ -1940,7 +1940,7 @@ fn item_names(code: &mut Code) -> HashMap<Item, u32> {
     map
 }
 
-const ACTOR_NAME_OFFSETS: [(Item, u32); 37] = [
+const ACTOR_NAME_OFFSETS: [(Item, u32); 28] = [
     (ItemStoneBeauty, 0x5D2060),
     (RupeeSilver, 0x5D63A4),
     (KeySmall, 0x5D6580),
@@ -1969,18 +1969,9 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 37] = [
     (ItemBowLight, 0x5D776C),
     (HeartContainer, 0x5D7B7C),
     (HeartPiece, 0x5D7B94),
-    (Item::UpgradeIceRod, 0x5D6AFC),
-    (Item::UpgradeSandRod, 0x5D6B08),
-    (Item::UpgradeTornadoRod, 0x5D6B18),
-    (Item::UpgradeBombs, 0x5D6B28),
-    (Item::UpgradeFireRod, 0x5D6B30),
-    (Item::UpgradeHookshot, 0x5D6B40),
-    (Item::UpgradeBoomerang, 0x5D6B50),
-    (Item::UpgradeHammer, 0x5D6B60),
-    (Item::UpgradeBow, 0x5D6B6C),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 85] = [
+const ACTOR_NAMES: [(Item, &str); 94] = [
     (RupeeG, "RupeeG"),
     (RupeeB, "RupeeB"),
     (RupeeR, "RupeeR"),
@@ -2064,6 +2055,15 @@ const ACTOR_NAMES: [(Item, &str); 85] = [
     (CompassDesert, "Compass"),
     (CompassTurtle, "Compass"),
     (CompassCastle, "Compass"),
+    (Item::UpgradeIceRod, "GtEvRodIceB"),
+    (Item::UpgradeSandRod, "GtEvRodSandB"),
+    (Item::UpgradeTornadoRod, "GtEvTornadoB"),
+    (Item::UpgradeBombs, "BombM"),
+    (Item::UpgradeFireRod, "GtEvRodFireB"),
+    (Item::UpgradeHookshot, "GtEvHookshotB"),
+    (Item::UpgradeBoomerang, "GtEvBoomerangB"),
+    (Item::UpgradeHammer, "GtEvHammerB"),
+    (Item::UpgradeBow, "GtEvBowB"),
     (Item::UpgradeLamp, "GtEvKandelaar"),
     (Item::UpgradeNet, "GtEvNet"),
 ];
