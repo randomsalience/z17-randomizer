@@ -19,6 +19,7 @@ use rom::flag::Flag;
 use rom::scene::{Transform, Vec3};
 use rom::{
     flow::FlowMut,
+    h3d,
     scene::{Arg, Obj, Rail, SceneMeta},
     File, IntoBytes, Language, Rom, Scene,
 };
@@ -633,6 +634,28 @@ impl Patcher {
                 actor.rename(format!("World/Actor/{}.bch", get_item.actor_name()?));
                 item_actors.insert(item, actor);
             }
+        }
+
+        for (item, name, color3, color4) in [
+            (Item::RupeeG, "RupeeG", [0x00, 0xb0, 0x1c, 0xae], [0x00, 0x2b, 0x1a, 0xff]),
+            (Item::RupeeB, "RupeeB", [0x00, 0x0a, 0xff, 0xae], [0x00, 0x05, 0x36, 0xff]),
+            (Item::RupeeR, "RupeeR", [0xff, 0x00, 0x00, 0xae], [0x1c, 0x00, 0x0f, 0xff]),
+            (Item::RupeePurple, "RupeeP", [0x45, 0x00, 0xe6, 0xae], [0x30, 0x00, 0x29, 0xff]),
+        ] {
+            let mut actor = common_archive
+                .get_actor_bch("Rupee")?
+                .try_map(|data| h3d::Resource::from_bytes(&data))?;
+            actor.rename(format!("World/Actor/{}.bch", name));
+            let param = actor.get()
+                .get_model(0)?
+                .get_material(0)?
+                .get_param()?;
+            param.set_color(h3d::MaterialColor::Constant3, color3);
+            param.set_color(h3d::MaterialColor::Constant4, color4);
+            param.set_tev_color(h3d::TevStage::Stage1, color3)?;
+            param.set_tev_color(h3d::TevStage::Stage2, color4)?;
+            param.set_tev_color(h3d::TevStage::Stage4, color3)?;
+            item_actors.insert(item, actor.into_bytes());
         }
 
         {

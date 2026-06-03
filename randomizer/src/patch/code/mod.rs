@@ -1940,12 +1940,8 @@ fn item_names(code: &mut Code) -> HashMap<Item, u32> {
     map
 }
 
-const ACTOR_NAME_OFFSETS: [(Item, u32); 41] = [
+const ACTOR_NAME_OFFSETS: [(Item, u32); 37] = [
     (ItemStoneBeauty, 0x5D2060),
-    (RupeeR, 0x5D639C),
-    (RupeeG, 0x5D639C),
-    (RupeeB, 0x5D639C),
-    (RupeePurple, 0x5D639C),
     (RupeeSilver, 0x5D63A4),
     (KeySmall, 0x5D6580),
     (ItemIceRod, 0x5D6AFC),
@@ -1984,7 +1980,11 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 41] = [
     (Item::UpgradeBow, 0x5D6B6C),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 81] = [
+const ACTOR_NAMES: [(Item, &str); 85] = [
+    (RupeeG, "RupeeG"),
+    (RupeeB, "RupeeB"),
+    (RupeeR, "RupeeR"),
+    (RupeePurple, "RupeeP"),
     (KeyBoss, "KeyBoss"),
     (TriforceCourage, "BadgeBee"),
     (Compass, "Compass"),

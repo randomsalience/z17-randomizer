@@ -37,6 +37,7 @@ mod files;
 pub mod flag;
 pub mod flow;
 pub mod font;
+pub mod h3d;
 pub mod item;
 pub mod language;
 pub mod scene;
