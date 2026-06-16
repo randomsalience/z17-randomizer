@@ -616,7 +616,7 @@ impl Patcher {
         let scene_env_file = byaml::scene_env::patch(&mut self, &seed_info.settings);
         let cutscenes = demo::build_replacement_cutscenes(seed_info)?;
 
-        let common_archive = self.game.common()?;
+        let mut common_archive = self.game.common()?;
         let mut item_actors = HashMap::new();
         let mut get_item_actors = Vec::new();
 
@@ -670,10 +670,9 @@ impl Patcher {
 
             if seed_info.settings.change_freestanding_models {
                 for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {
-                    for (name, course, stage, _) in data {
+                    for (name, _, _, _) in data {
                         let item = seed_info.layout.get_by_name(name).normalize();
-                        let stage_actors = courses.get_mut(&course).unwrap().scenes.get_mut(&(stage - 1)).unwrap().actors_mut();
-                        stage_actors.add(item_actors.get(&item).unwrap().clone())?;
+                        common_archive.add(item_actors.get(&item).unwrap().clone())?;
                     }
                 }
             }
@@ -709,6 +708,10 @@ impl Patcher {
         let mut progress = 0.0;
 
         romfs.add(boot.into_archive());
+        update_progress_bar(&mut progress, step, py);
+        if let Some(common) = common_archive.into_archive() {
+            romfs.add(common);
+        }
         update_progress_bar(&mut progress, step, py);
         if let Some(scene_env_file) = scene_env_file {
             romfs.add_serialize(scene_env_file.into_file());

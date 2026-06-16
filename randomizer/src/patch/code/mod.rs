@@ -1249,9 +1249,9 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
     code.overwrite(0x693d09, [SMALL_KEYS.len() as u8 + 1]);
     code.overwrite(0x693d4b, [RUPEES.len() as u8 + 1]);
 
-    // Get models from stage archive instead of ActorCommon
-    code.overwrite(0x693a89, [1]);
-    code.overwrite(0x693acb, [1]);
+    // Get models from ActorCommon instead of stage archive
+    code.overwrite(0x693b0c, [0]);
+    code.overwrite(0x693b0d, [0]);
 }
 
 fn pause_menu_warp(code: &mut Code) {
