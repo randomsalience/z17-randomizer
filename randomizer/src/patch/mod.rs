@@ -675,6 +675,8 @@ impl Patcher {
                         common_archive.add(item_actors.get(&item).unwrap().clone())?;
                     }
                 }
+                common_archive.add(item_actors.get(&Item::HeartPiece).unwrap().clone())?;
+                common_archive.add(item_actors.get(&Item::HeartContainer).unwrap().clone())?;
             }
         }
 
