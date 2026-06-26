@@ -444,21 +444,21 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
 
     // Save Archipelago information
     let patch_create_save = code.text().define([
+        bl(0x320d78),
         ldr(R0, archipelago_header),
         ldr(R0, (R0, 0x0)),
-        str_(R0, (R5, 0xde0)), // magic number
+        str_(R0, (R4, 0xde0)), // magic number
         ldr(R0, archipelago_header),
         ldr(R0, (R0, 0x4)),
-        str_(R0, (R5, 0xde4)), // data version
+        str_(R0, (R4, 0xde4)), // data version
         ldr(R0, archipelago_header),
         ldr(R0, (R0, 0x8)),
-        str_(R0, (R5, 0xde8)), // seed
+        str_(R0, (R4, 0xde8)), // seed
         mov(R0, 0x0),
-        str_(R0, (R5, 0xdec)), // received items count
-        mov(R0, R5),
-        b(0x1df5b0),
+        str_(R0, (R4, 0xdec)), // received items count
+        b(0x293ad0),
     ]);
-    code.patch(0x1df5ac, [b(patch_create_save)]);
+    code.patch(0x293acc, [b(patch_create_save)]);
 
     // Receive items from the server
     let receive_items_timer = code.rodata().declare([0, 0, 0, 0]);
