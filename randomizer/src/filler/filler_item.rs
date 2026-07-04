@@ -16,12 +16,14 @@ pub enum Randomizable {
     HintGhost(HintGhost),
     Vane(Vane),
     Crack(Crack),
+    ArchipelagoItem(u16),
 }
 
 impl Randomizable {
     pub fn as_item(&self) -> Option<Item> {
         match self {
             Self::Item(item) => Some(*item),
+            Self::ArchipelagoItem(_) => Some(Item::LetterInABottle),
             _ => None,
         }
     }
@@ -48,12 +50,17 @@ impl Randomizable {
                 ItemInsectNetLv2 => ItemInsectNet,
                 item => item,
             },
+            ArchipelagoItem(_) => MessageBottle,
             _ => unreachable!(),
         }
     }
 
     pub fn as_item_index(&self) -> u32 {
-        self.normalize() as u32
+        match &self {
+            Randomizable::Item(_) => self.normalize() as u32,
+            Randomizable::ArchipelagoItem(code) => (code | 0x8000) as u32,
+            _ => unreachable!(),
+        }
     }
 
     pub fn is_hint_ghost(self) -> bool {
@@ -351,6 +358,7 @@ impl Randomizable {
             Self::HintGhost(ghost) => hint_ghost_name(&ghost),
             Self::Vane(vane) => vane.as_str(),
             Self::Crack(crack) => crack.as_str(),
+            Self::ArchipelagoItem(_) => "Archipelago Item",
         }
     }
 
@@ -410,6 +418,11 @@ pub struct PyRandomizable {
 #[pyfunction]
 pub fn new_item(item: Item) -> PyRandomizable {
     PyRandomizable { randomizable: Randomizable::Item(item) }
+}
+
+#[pyfunction]
+pub fn new_archipelago_item(code: u16) -> PyRandomizable {
+    PyRandomizable { randomizable: Randomizable::ArchipelagoItem(code) }
 }
 
 #[pyfunction]

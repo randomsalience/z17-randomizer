@@ -84,11 +84,25 @@ where
     instruction(operand2.into().code(), 0b1101, false, R0, rd)
 }
 
+pub fn and<O>(rd: Register, rn: Register, operand2: O) -> Instruction
+where
+    O: Into<ShifterOperand>,
+{
+    instruction(operand2.into().code(), 0b0000, false, rn, rd)
+}
+
 pub fn orr<O>(rd: Register, rn: Register, operand2: O) -> Instruction
 where
     O: Into<ShifterOperand>,
 {
     instruction(operand2.into().code(), 0b1100, false, rn, rd)
+}
+
+pub fn tst<O>(rn: Register, operand2: O) -> Instruction
+where
+    O: Into<ShifterOperand>,
+{
+    instruction(operand2.into().code(), 0b1000, true, rn, R0)
 }
 
 pub fn mul(rd: Register, rm: Register, rs: Register) -> Instruction {

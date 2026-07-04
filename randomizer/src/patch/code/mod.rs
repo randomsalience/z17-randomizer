@@ -3,7 +3,7 @@ use crate::filler::filler_item::Item::*;
 use crate::filler::filler_item::Randomizable;
 use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use crate::patch::code::arm::Register::*;
-use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr};
+use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr, and, tst};
 use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
@@ -277,10 +277,9 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 
     let overwrite_rentals = code.text;
     let mut actor_offset = 0;
-    let mut name_offset = 0x714608;
     for rental in patcher.rentals.iter() {
         let actor = actor_names
-            .get(rental)
+            .get(&rental.normalize())
             .copied()
             .unwrap_or_else(|| panic!("Could not find actor name for {}", rental.as_str()));
         code.text().define([
@@ -290,29 +289,34 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
             add(PC, PC, 0), // bad hack
         ]);
         actor_offset += 8;
-        let name = item_names.get(rental).copied().unwrap_or(0x6F9B1A);
-        code.overwrite(name_offset, name.to_le_bytes());
-        name_offset += 4;
     }
     code.text().define([b(0x5D68F4)]);
     code.patch(0x5D688C, [b(overwrite_rentals)]);
-    let rentals = patcher.rentals.iter().map(|item| *item as u8).collect::<Vec<_>>();
-    code.overwrite(0x6A0348, rentals);
+    let rental_data = patcher.rentals.iter()
+        .flat_map(|item| item.as_item_index().to_le_bytes())
+        .collect::<Vec<_>>();
+    let rentals = code.rodata().declare(rental_data);
+    let patch_rentals = code.text().define([
+        ldr(R12, rentals),
+        ldr(R2, (R12, R2, 2)),
+        b(0x312734),
+    ]);
+    code.patch(0x312724, [b(patch_rentals)]);
     let sold_out = 0x5D6B84u32;
     let merchant_left = patcher.merchant[0];
     let merchant_left_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_left).unwrap().to_le_bytes());
+    code.rodata().declare(actor_names.get(&merchant_left.normalize()).unwrap().to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DD4, merchant_left_actor.to_le_bytes());
-    code.overwrite(0x6A03E0, [merchant_left as u8]);
+    code.overwrite(0x6A03E0, (merchant_left.as_item_index() as u16).to_le_bytes());
     let merchant_right = patcher.merchant[2];
     let merchant_right_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_right).unwrap().to_le_bytes());
+    code.rodata().declare(actor_names.get(&merchant_right.normalize()).unwrap().to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DE0, merchant_right_actor.to_le_bytes());
-    code.overwrite(0x6A03E8, [merchant_right as u8]);
+    code.overwrite(0x6A03E8, (merchant_right.as_item_index() as u16).to_le_bytes());
 
     // Hearts
     code.patch(0x33497C, [ldrh(R1, (R4, 0x2E)), mov(R0, R0)]);
@@ -623,6 +627,51 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         bx(LR),
     ]);
     code.patch(0x55af28, [b(change_ravio_text)]);
+
+    // Change get item text for Archipelago items
+    let ap_item_format_string = code.rodata().declare("ap_item_%d\0".to_string().into_bytes());
+    let patch_get_item_message = code.text().define([
+        sub(SP, SP, 0x1c),
+        push([R0, R1, R2, R3]),
+        // if bit 15 of item ID is not set (not an AP item), proceed as usual
+        ldr(R1, (R4, 0x74)),
+        tst(R1, 0x8000),
+        pop([R0, R1, R2, R3]).eq(),
+        bl(0x51bb74).eq(),
+        add(SP, SP, 0x1c).eq(),
+        b(0x28ea14).eq(),
+        // strip bit 15 from item ID
+        ldr(R3, 0x7fff),
+        and(R2, R1, R3),
+        // create a FixedSafeString<0x10> on the stack
+        ldr(R1, VTABLE_FIXED_STRING_10),
+        str_(R1, (SP, 0x10)),
+        add(R1, SP, 0x1c),
+        str_(R1, (SP, 0x14)),
+        mov(R1, 0x10),
+        str_(R1, (SP, 0x18)),
+        // apply the format string
+        add(R0, SP, 0x10),
+        ldr(R1, ap_item_format_string),
+        bl(FN_STRING_FORMAT),
+        // set the get item message and return
+        pop([R0, R1, R2, R3]),
+        mov(R1, SP),
+        bl(0x51bb74),
+        add(SP, SP, 0x1c),
+        b(0x28ea14),
+    ]);
+    code.patch(0x28ea10, [b(patch_get_item_message)]);
+
+    // Since we're using bit 15 of the item ID to represent an Archipelago item,
+    // we have to convert to the actual item ID when loading the get item info
+    let get_correct_get_item = code.text().define([
+        ldr(R2, (R4, 0x74)),
+        tst(R2, 0x8000),
+        mov(R2, 0x49).ne(),
+        b(0x28e544),
+    ]);
+    code.patch(0x28e540, [b(get_correct_get_item)]);
 }
 
 #[allow(unused_variables)]
@@ -2218,3 +2267,5 @@ const PLAYER_OBJECT_SINGLETON: u32 = 0x70FB60;
 const GAME_MANAGER: u32 = 0x709DF8;
 const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;
+const VTABLE_FIXED_STRING_10: u32 = 0x6f5b94;
+const FN_STRING_FORMAT: u32 = 0x4994b0;

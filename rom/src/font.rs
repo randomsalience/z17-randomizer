@@ -111,11 +111,19 @@ impl Font {
         let mut word = Vec::new();
         let mut width = 0;
         let mut word_width = 0;
+        let mut control = Vec::new();
+        let mut color = 0xFFFF;
         for code in text.encode_utf16() {
             word.push(code);
             if code < 0x20 || code == 0xffff { // control characters
+                control.push(code);
+                if control.len() >= 5 && control[0..4] == [0xE, 0, 3, 2] {
+                    color = control[4];
+                }
                 continue;
             }
+
+            control.clear();
 
             let glyph = self.code_map.get(&code).ok_or(Error::new(format!("Invalid character code 0x{:X}.", code)))?;
             word_width += *self.glyph_widths.get(glyph).ok_or(Error::new(format!("Invalid glyph 0x{:X}.", glyph)))? as usize;
@@ -126,6 +134,9 @@ impl Font {
                     width += word_width;
                 } else {
                     result.push(0xa); // newline
+                    if color != 0xFFFF {
+                        result.extend(&[0xE, 0, 3, 2, color]);
+                    }
                     result.append(&mut word);
                     width = word_width;
                 }

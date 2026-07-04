@@ -153,7 +153,7 @@ macro_rules! action {
 
 /// Ravio's Shop
 fn patch_ravio_shop(patcher: &mut Patcher) -> Result<()> {
-    let bow_slot_item = patcher.rentals[8];
+    let bow_slot_item = patcher.rentals[8].normalize();
 
     apply!(patcher,
         IndoorLight/FieldLight_2C_Rental {

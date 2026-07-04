@@ -1,5 +1,5 @@
 use crate::filler::cracks::Crack;
-use crate::filler::filler_item::{Randomizable, Vane};
+use crate::filler::filler_item::{self, Randomizable, Vane};
 use crate::regions;
 use crate::{patch::util::*, Error, Result, SeedInfo};
 use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
@@ -56,8 +56,8 @@ pub struct DungeonPrizes {
 pub struct Patcher {
     game: Rom,
     boot: Language,
-    rentals: [Item; 9],
-    merchant: [Item; 3],
+    rentals: [Randomizable; 9],
+    merchant: [Randomizable; 3],
     courses: HashMap<CourseId, Course>,
 }
 
@@ -67,8 +67,8 @@ impl Patcher {
         Ok(Self {
             game,
             boot,
-            rentals: [Item::KeySmall; 9],
-            merchant: [Item::KeySmall; 3],
+            rentals: [Randomizable::Item(filler_item::Item::Empty); 9],
+            merchant: [Randomizable::Item(filler_item::Item::Empty); 3],
             courses: Default::default(),
         })
     }
@@ -308,10 +308,10 @@ impl Patcher {
                     .set_value(filler_item.into().unwrap().as_item_index());
             },
             Patch::Shop(Shop::Ravio(index)) => {
-                self.rentals[index as usize] = filler_item.into().unwrap().as_item().unwrap().to_game_item();
+                self.rentals[index as usize] = filler_item.into().unwrap();
             },
             Patch::Shop(Shop::Merchant(index)) => {
-                self.merchant[index as usize] = filler_item.into().unwrap().as_item().unwrap().to_game_item();
+                self.merchant[index as usize] = filler_item.into().unwrap();
             },
             Patch::Multi(patches) => {
                 for patch in patches {
@@ -661,12 +661,12 @@ impl Patcher {
         {
             let Self { ref rentals, ref merchant, ref mut courses, .. } = self;
             let your_house_actors = courses.get_mut(&IndoorLight).unwrap().scenes.get_mut(&0).unwrap().actors_mut();
-            for actor in rentals.iter().filter_map(|item| item_actors.get(item)) {
+            for actor in rentals.iter().filter_map(|item| item_actors.get(&item.normalize())) {
                 your_house_actors.add(actor.clone())?;
             }
             let kakariko_actors = courses.get_mut(&FieldLight).unwrap().scenes.get_mut(&15).unwrap().actors_mut();
-            kakariko_actors.add(item_actors.get(&merchant[0]).unwrap().clone())?;
-            kakariko_actors.add(item_actors.get(&merchant[2]).unwrap().clone())?;
+            kakariko_actors.add(item_actors.get(&merchant[0].normalize()).unwrap().clone())?;
+            kakariko_actors.add(item_actors.get(&merchant[2].normalize()).unwrap().clone())?;
 
             if seed_info.settings.change_freestanding_models {
                 for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {

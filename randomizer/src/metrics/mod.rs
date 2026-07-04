@@ -65,6 +65,7 @@ impl Sphere {
             Randomizable::Crack(crack) => {
                 self.cracks.insert(String::from(check_name), crack);
             },
+            Randomizable::ArchipelagoItem(_) => {},
         };
     }
 

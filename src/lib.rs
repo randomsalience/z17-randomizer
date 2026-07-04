@@ -27,7 +27,7 @@ mod albwrandomizer {
         ArchipelagoItem, ArchipelagoInfo, SeedInfo,
         filler::filler_item::{
             Item, Goal, Vane, Crack, PyRandomizable,
-            new_item, new_goal, new_vane, new_crack
+            new_item, new_archipelago_item, new_goal, new_vane, new_crack
         },
         hints::set_custom_hints,
         randomize_pre_fill

@@ -333,22 +333,49 @@ pub struct Text {
 #[pyclass]
 pub struct ArchipelagoItem {
     pub name: String,
+    pub player_name: String,
     pub classification: u8,
+    pub location_code: u16,
+}
+
+pub enum ClassificationType {
+    ProgressionUseful,
+    Progression,
+    Useful,
+    Filler,
+    Trap,
 }
 
 #[pymethods]
+impl ArchipelagoItem {
+    #[new]
+    pub fn new(name: String, player_name: String, classification: u8, location_code: u16) -> ArchipelagoItem {
+        ArchipelagoItem {name, player_name, classification, location_code}
+    }
+}
+
 impl ArchipelagoItem {
     pub const CLASS_PROGRESSION: u8 = 1;
     pub const CLASS_USEFUL: u8 = 2;
     pub const CLASS_TRAP: u8 = 4;
 
-    #[new]
-    pub fn new(name: String, classification: u8) -> ArchipelagoItem {
-        ArchipelagoItem {name, classification}
-    }
-
     pub fn is_major(&self) -> bool {
         self.classification & Self::CLASS_PROGRESSION != 0
+    }
+
+    pub fn classification_type(&self) -> ClassificationType {
+        use ClassificationType::*;
+        if self.classification & Self::CLASS_PROGRESSION != 0 && self.classification & Self::CLASS_USEFUL != 0 {
+            ProgressionUseful
+        } else if self.classification & Self::CLASS_PROGRESSION != 0 {
+            Progression
+        } else if self.classification & Self::CLASS_USEFUL != 0 {
+            Useful
+        } else if self.classification & Self::CLASS_TRAP != 0 {
+            Trap
+        } else {
+            Filler
+        }
     }
 }
 
@@ -457,6 +484,7 @@ impl SeedInfo {
         if let Some(info) = &self.archipelago_info {
             match layout_item {
                 Randomizable::Item(LetterInABottle) => info.get_item_name(loc_name),
+                Randomizable::ArchipelagoItem(_) => info.get_item_name(loc_name),
                 _ => Ok(layout_item.as_str().to_string()),
             }
         } else {

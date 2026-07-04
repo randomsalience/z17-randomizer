@@ -22,7 +22,7 @@ pub fn patch_messages(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()>
     patch_file_select(patcher, seed_info)?;
     // patch_pause_screen(patcher)?; TODO
     patch_item_names(patcher, seed_info)?;
-    patch_event_item_get(patcher, seed_info.is_archipelago())?;
+    patch_event_item_get(patcher, seed_info)?;
     patch_collect(patcher, seed_info)?;
     patch_actions(patcher)?;
     patch_ravio(patcher, seed_info)?;
@@ -108,15 +108,13 @@ fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
         let font = patcher.game.font().unwrap();
 
         // Ravio items
-        item_name.set("item_name_icerod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (1)")?, 360));
-        item_name.set("item_name_hookshot_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (2)")?, 360));
-        item_name.set("item_name_tornaderod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (3)")?, 360));
-        item_name.set("item_name_bomb_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (4)")?, 360));
-        item_name.set("item_name_bow_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (5)")?, 360));
-        item_name.set("item_name_sandrod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (6)")?, 360));
-        item_name.set("item_name_hammer_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (7)")?, 360));
-        item_name.set("item_name_boomerang_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (8)")?, 360));
-        item_name.set("item_name_firerod_LV2", &font.try_wrap(&info.get_item_name("Ravio's Shop (9)")?, 360));
+        for (index, item) in
+            ["icerod", "hookshot", "tornaderod", "bomb", "bow", "sandrod", "hammer", "boomerang", "firerod"]
+            .iter().enumerate()
+        {
+            item_name.set(&format!("item_name_{}", item), &info.get_item_name(&format!("Ravio's Shop ({})", index + 1))?);
+            item_name.set(&format!("item_name_{}_LV2", item), &info.get_item_name(&format!("Ravio's Shop ({})", index + 1))?);
+        }
 
         // Mother Maiamai Items
         if seed_info.settings.shuffle_maiamai_rewards {
@@ -146,7 +144,7 @@ fn patch_item_names(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
 }
 
 /// Item Descriptions
-fn patch_event_item_get(patcher: &mut Patcher, archipelago: bool) -> Result<()> {
+fn patch_event_item_get(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<()> {
     let mut msbt = load_msbt(patcher, LanguageBoot, "EventItemGet")?;
 
     msbt.set("none", "A quake shakes the kingdom!"); // ehh
@@ -164,8 +162,23 @@ fn patch_event_item_get(patcher: &mut Patcher, archipelago: bool) -> Result<()> 
     msbt.set("kandelaar", "You got the lamp!");
     msbt.set("zelda_amulet", &format!("You got a special charm!\nIt's {}!", attention("useless"))); // Cut " from Princess Zelda"
 
-    if archipelago {
+    if let Some(archipelago_info) = &seed_info.archipelago_info {
         msbt.set("message_bottle", "You got an Archipelago item!");
+
+        let font = patcher.game.font().unwrap();
+        for (_, archipelago_item) in &archipelago_info.items {
+            let key = format!("ap_item_{}", archipelago_item.location_code);
+            use crate::ClassificationType::*;
+            let item_name = match archipelago_item.classification_type() {
+                ProgressionUseful => yellow(&archipelago_item.name),
+                Progression => green(&archipelago_item.name),
+                Useful => name(&archipelago_item.name),
+                Filler => yuga_talking(&archipelago_item.name),
+                Trap => attention(&archipelago_item.name),
+            };
+            let text = format!("You got {} for {}!", item_name, archipelago_item.player_name);
+            msbt.add(&key, &font.try_wrap(&text, 360));
+        }
     }
 
     for item in Item::new_items() {
