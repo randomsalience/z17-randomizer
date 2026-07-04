@@ -737,6 +737,9 @@ fn new_items(code: &mut Code) {
         Course::AttractionDark as u8,
     ]);
 
+    // Number of keys in each course
+    let key_count_table = code.rodata().declare([2, 4, 2, 4, 4, 3, 1, 3, 5, 3, 5, 1, 1]);
+
     let not_new_item = code.text().define([
         mov(R0, 0),
         b(0x3459c4),
@@ -876,7 +879,46 @@ fn new_items(code: &mut Code) {
         b(0x344f00),
     ]);
 
-    code.patch(0x3459c0, [b(fn_add_upgrade)]);
+    // Code for gaining a key ring
+    let fn_add_key_ring = code.text().define([
+        // Check if item is key ring
+        cmp(R0, Item::KEY_RING_START),
+        b(fn_add_upgrade).lt(),
+        cmp(R0, Item::KEY_RING_END),
+        b(fn_add_upgrade).gt(),
+
+        // Get course associated to key ring
+        sub(R0, R0, Item::KEY_RING_START),
+        ldr(R1, course_table),
+        ldrb(R1, (R1, R0)),
+
+        // Get current course
+        ldr(R2, GAME_MANAGER),
+        ldr(R2, (R2, 0)),
+        ldrb(R2, (R2, 0x18)),
+
+        // Load player inventory
+        ldr(R3, PLAYER_OBJECT_SINGLETON),
+        ldr(R3, (R3, 0)),
+        ldr(R3, (R3, 0x10)),
+        add(R3, R3, 0x400),
+        add(R3, R3, 0xC),
+
+        // Increment key count
+        cmp(R1, R2),
+        add(R2, R1, 0x10C),
+        ldr(R1, key_count_table),
+        ldrb(R1, (R1, R0)),
+        ldrb(R0, (R3, 0x24)).eq(),
+        ldrb(R0, (R3, R2)).ne(),
+        add(R0, R0, R1),
+        strb(R0, (R3, 0x24)).eq(),
+        strb(R0, (R3, R2)).ne(),
+
+        b(0x344f00),
+    ]);
+
+    code.patch(0x3459c0, [b(fn_add_key_ring)]);
 }
 
 fn starting_gear(code: &mut Code, settings: &Settings) {
@@ -2020,7 +2062,7 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 28] = [
     (HeartPiece, 0x5D7B94),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 94] = [
+const ACTOR_NAMES: [(Item, &str); 107] = [
     (RupeeG, "RupeeG"),
     (RupeeB, "RupeeB"),
     (RupeeR, "RupeeR"),
@@ -2115,6 +2157,19 @@ const ACTOR_NAMES: [(Item, &str); 94] = [
     (Item::UpgradeBow, "GtEvBowB"),
     (Item::UpgradeLamp, "GtEvKandelaar"),
     (Item::UpgradeNet, "GtEvNet"),
+    (KeyRingHyrule, "KeySmall"),
+    (KeyRingEastern, "KeySmall"),
+    (KeyRingGales, "KeySmall"),
+    (KeyRingHera, "KeySmall"),
+    (KeyRingLorule, "KeySmall"),
+    (KeyRingDark, "KeySmall"),
+    (KeyRingSwamp, "KeySmall"),
+    (KeyRingSkull, "KeySmall"),
+    (KeyRingThieves, "KeySmall"),
+    (KeyRingIce, "KeySmall"),
+    (KeyRingDesert, "KeySmall"),
+    (KeyRingTurtle, "KeySmall"),
+    (KeyRingCastle, "KeySmall"),
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2142,7 +2197,7 @@ const ITEM_NAME_OFFSETS: [(Item, u32); 20] = [
     (RupeeGold, 0x6f9be2),       // item_name_sandrod_rental
 ];
 
-const ITEM_NAMES: [(Item, &str); 102] = [
+const ITEM_NAMES: [(Item, &str); 115] = [
     (BadgeBee, "beebadge"),
     (Compass, "compass"),
     (ItemBell, "bell"),
@@ -2245,6 +2300,19 @@ const ITEM_NAMES: [(Item, &str); 102] = [
     (Item::UpgradeBow, "upgrade_bow"),
     (Item::UpgradeLamp, "upgrade_lamp"),
     (Item::UpgradeNet, "upgrade_net"),
+    (KeyRingHyrule, "key_ring_hyrule"),
+    (KeyRingEastern, "key_ring_eastern"),
+    (KeyRingGales, "key_ring_gales"),
+    (KeyRingHera, "key_ring_hera"),
+    (KeyRingLorule, "key_ring_lorule"),
+    (KeyRingDark, "key_ring_dark"),
+    (KeyRingSwamp, "key_ring_swamp"),
+    (KeyRingSkull, "key_ring_skull"),
+    (KeyRingThieves, "key_ring_thieves"),
+    (KeyRingIce, "key_ring_ice"),
+    (KeyRingDesert, "key_ring_desert"),
+    (KeyRingTurtle, "key_ring_turtle"),
+    (KeyRingCastle, "key_ring_castle"),
 ];
 
 const EVENT_FLAG_PTR: u32 = 0x70B728;

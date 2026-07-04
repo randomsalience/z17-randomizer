@@ -344,6 +344,33 @@ Item(u16) {
     UpgradeLamp = 0x93,
     /// Bug Net Upgrade
     UpgradeNet = 0x94,
+
+    /// Key Ring (Eastern Palace)
+    KeyRingEastern = 0x95,
+    /// Key Ring (House of Gales)
+    KeyRingGales = 0x96,
+    /// Key Ring (Tower of Hera)
+    KeyRingHera = 0x97,
+    /// Key Ring (Dark Palace)
+    KeyRingDark = 0x98,
+    /// Key Ring (Swamp Palace)
+    KeyRingSwamp = 0x99,
+    /// Key Ring (Skull Woods)
+    KeyRingSkull = 0x9A,
+    /// Key Ring (Thieves' Hideout)
+    KeyRingThieves = 0x9B,
+    /// Key Ring (Ice Ruins)
+    KeyRingIce = 0x9C,
+    /// Key Ring (Desert Palace)
+    KeyRingDesert = 0x9D,
+    /// Key Ring (Turtle Rock)
+    KeyRingTurtle = 0x9E,
+    /// Key Ring (Lorule Castle)
+    KeyRingCastle = 0x9F,
+    /// Key Ring (Hyrule Sanctuary)
+    KeyRingHyrule = 0xA0,
+    /// Key Ring (Lorule Sanctuary)
+    KeyRingLorule = 0xA1,
 }}
 
 impl Item {
@@ -355,6 +382,8 @@ impl Item {
     pub const COMPASS_END: u32 = Item::CompassCastle as u32;
     pub const UPGRADE_START: u32 = Item::UpgradeIceRod as u32;
     pub const UPGRADE_END: u32 = Item::UpgradeNet as u32;
+    pub const KEY_RING_START: u32 = Item::KeyRingEastern as u32;
+    pub const KEY_RING_END: u32 = Item::KeyRingLorule as u32;
 
     pub fn new_items() -> impl Iterator<Item = Self> {
         const MAX_BASE_ITEM: Item = Item::GoldenBeeForSale;
@@ -416,6 +445,19 @@ impl Item {
             Item::UpgradeBow => "upgrade_bow",
             Item::UpgradeLamp => "upgrade_lamp",
             Item::UpgradeNet => "upgrade_net",
+            Item::KeyRingEastern => "key_ring_eastern",
+            Item::KeyRingGales => "key_ring_gales",
+            Item::KeyRingHera => "key_ring_hera",
+            Item::KeyRingDark => "key_ring_dark",
+            Item::KeyRingSwamp => "key_ring_swamp",
+            Item::KeyRingSkull => "key_ring_skull",
+            Item::KeyRingThieves => "key_ring_thieves",
+            Item::KeyRingIce => "key_ring_ice",
+            Item::KeyRingDesert => "key_ring_desert",
+            Item::KeyRingTurtle => "key_ring_turtle",
+            Item::KeyRingCastle => "key_ring_castle",
+            Item::KeyRingHyrule => "key_ring_hyrule",
+            Item::KeyRingLorule => "key_ring_lorule",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }
@@ -475,6 +517,19 @@ impl Item {
             Item::UpgradeBow => "Your Bow will be upgraded!",
             Item::UpgradeLamp => "Your Lamp will be upgraded!",
             Item::UpgradeNet => "Your Bug Net will be upgraded!",
+            Item::KeyRingEastern => "You got the key ring for Eastern Palace!",
+            Item::KeyRingGales => "You got the key ring for House of Gales!",
+            Item::KeyRingHera => "You got the key ring for Tower of Hera!",
+            Item::KeyRingDark => "You got the key ring for Dark Palace!",
+            Item::KeyRingSwamp => "You got the key ring for Swamp Palace!",
+            Item::KeyRingSkull => "You got the key ring for Skull Woods!",
+            Item::KeyRingThieves => "You got the key ring for Thieves' Hideout!",
+            Item::KeyRingIce => "You got the key ring for Ice Ruins!",
+            Item::KeyRingDesert => "You got the key ring for Desert Palace!",
+            Item::KeyRingTurtle => "You got the key ring for Turtle Rock!",
+            Item::KeyRingCastle => "You got the key ring for Lorule Castle!",
+            Item::KeyRingHyrule => "You got the key ring for Hyrule Sanctuary!",
+            Item::KeyRingLorule => "You got the key ring for Lorule Sanctuary!",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }

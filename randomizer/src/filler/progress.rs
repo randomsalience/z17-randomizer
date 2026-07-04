@@ -565,11 +565,11 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_sanctuary_key(&self) -> bool {
-        self.is_small_keysy() || self.has(Item::HyruleSanctuaryKey)
+        self.is_small_keysy() || self.has(Item::HyruleSanctuaryKey) || self.has(Item::HyruleSanctuaryKeyRing)
     }
 
     pub fn has_lorule_sanctuary_key(&self) -> bool {
-        self.is_small_keysy() || self.has(Item::LoruleSanctuaryKey)
+        self.is_small_keysy() || self.has(Item::LoruleSanctuaryKey) || self.has(Item::LoruleSanctuaryKeyRing)
     }
 
     pub fn has_eastern_compass(&self) -> bool {
@@ -583,6 +583,7 @@ impl<'s> Progress<'s> {
 
     pub fn has_eastern_keys(&self, amount: u8) -> bool {
         self.is_small_keysy() || self.has_amount(amount, [Item::EasternKeySmall01, Item::EasternKeySmall02])
+            || self.has(Item::EasternKeyRing)
     }
 
     pub fn has_eastern_big_key(&self) -> bool {
@@ -595,6 +596,7 @@ impl<'s> Progress<'s> {
                 amount,
                 [Item::GalesKeySmall01, Item::GalesKeySmall02, Item::GalesKeySmall03, Item::GalesKeySmall04],
             )
+            || self.has(Item::GalesKeyRing)
     }
 
     pub fn has_gales_big_key(&self) -> bool {
@@ -603,6 +605,7 @@ impl<'s> Progress<'s> {
 
     pub fn has_hera_keys(&self, amount: u8) -> bool {
         self.is_small_keysy() || self.has_amount(amount, [Item::HeraKeySmall01, Item::HeraKeySmall02])
+            || self.has(Item::HeraKeyRing)
     }
 
     pub fn has_hera_big_key(&self) -> bool {
@@ -615,6 +618,7 @@ impl<'s> Progress<'s> {
                 amount,
                 [Item::DarkKeySmall01, Item::DarkKeySmall02, Item::DarkKeySmall03, Item::DarkKeySmall04],
             )
+            || self.has(Item::DarkKeyRing)
     }
 
     pub fn has_dark_big_key(&self) -> bool {
@@ -627,6 +631,7 @@ impl<'s> Progress<'s> {
                 amount,
                 [Item::SwampKeySmall01, Item::SwampKeySmall02, Item::SwampKeySmall03, Item::SwampKeySmall04],
             )
+            || self.has(Item::SwampKeyRing)
     }
 
     pub fn has_swamp_big_key(&self) -> bool {
@@ -636,6 +641,7 @@ impl<'s> Progress<'s> {
     pub fn has_skull_keys(&self, amount: u8) -> bool {
         self.is_small_keysy()
             || self.has_amount(amount, [Item::SkullKeySmall01, Item::SkullKeySmall02, Item::SkullKeySmall03])
+            || self.has(Item::SkullKeyRing)
     }
 
     pub fn has_skull_big_key(&self) -> bool {
@@ -643,7 +649,7 @@ impl<'s> Progress<'s> {
     }
 
     pub fn has_thieves_key(&self) -> bool {
-        self.is_small_keysy() || self.has(Item::ThievesKeySmall)
+        self.is_small_keysy() || self.has(Item::ThievesKeySmall) || self.has(Item::ThievesKeyRing)
     }
 
     pub fn has_thieves_big_key(&self) -> bool {
@@ -662,6 +668,7 @@ impl<'s> Progress<'s> {
     pub fn has_ice_keys(&self, amount: u8) -> bool {
         self.is_small_keysy()
             || self.has_amount(amount, [Item::IceKeySmall01, Item::IceKeySmall02, Item::IceKeySmall03])
+            || self.has(Item::IceKeyRing)
     }
 
     pub fn has_ice_big_key(&self) -> bool {
@@ -680,6 +687,7 @@ impl<'s> Progress<'s> {
                     Item::DesertKeySmall05,
                 ],
             )
+            || self.has(Item::DesertKeyRing)
     }
 
     pub fn has_desert_big_key(&self) -> bool {
@@ -689,6 +697,7 @@ impl<'s> Progress<'s> {
     pub fn has_turtle_keys(&self, amount: u8) -> bool {
         self.is_small_keysy()
             || self.has_amount(amount, [Item::TurtleKeySmall01, Item::TurtleKeySmall02, Item::TurtleKeySmall03])
+            || self.has(Item::TurtleKeyRing)
     }
 
     pub fn has_turtle_big_key(&self) -> bool {
@@ -707,6 +716,7 @@ impl<'s> Progress<'s> {
                     Item::LoruleCastleKeySmall05,
                 ],
             )
+            || self.has(Item::LoruleCastleKeyRing)
     }
 
     pub fn has_completed_trials(&self) -> bool {

@@ -28,7 +28,20 @@ fn to_get_item(item: &Item) -> GetItem {
         | Item::SmallKeyIce
         | Item::SmallKeyDesert
         | Item::SmallKeyTurtle
-        | Item::SmallKeyCastle => {
+        | Item::SmallKeyCastle
+        | Item::KeyRingHyrule
+        | Item::KeyRingEastern
+        | Item::KeyRingGales
+        | Item::KeyRingHera
+        | Item::KeyRingLorule
+        | Item::KeyRingDark
+        | Item::KeyRingSwamp
+        | Item::KeyRingSkull
+        | Item::KeyRingThieves
+        | Item::KeyRingIce
+        | Item::KeyRingDesert
+        | Item::KeyRingTurtle
+        | Item::KeyRingCastle => {
             GetItem(item.as_str().into(), "Actor/KeySmall.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, -0.4, 0.0,
                 -47.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
         },

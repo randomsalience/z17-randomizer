@@ -771,13 +771,16 @@ pub enum Item {
 
     // Sanctuary Keys
     HyruleSanctuaryKey,
+    HyruleSanctuaryKeyRing,
     LoruleSanctuaryKey,
+    LoruleSanctuaryKeyRing,
 
     // Eastern Palace
     EasternCompass,
     EasternKeyBig,
     EasternKeySmall01,
     EasternKeySmall02,
+    EasternKeyRing,
 
     // House of Gales
     GalesCompass,
@@ -786,12 +789,14 @@ pub enum Item {
     GalesKeySmall02,
     GalesKeySmall03,
     GalesKeySmall04,
+    GalesKeyRing,
 
     // Tower of Hera
     HeraCompass,
     HeraKeyBig,
     HeraKeySmall01,
     HeraKeySmall02,
+    HeraKeyRing,
 
     // Dark Palace
     DarkCompass,
@@ -800,6 +805,7 @@ pub enum Item {
     DarkKeySmall02,
     DarkKeySmall03,
     DarkKeySmall04,
+    DarkKeyRing,
 
     // Swamp Palace
     SwampCompass,
@@ -808,6 +814,7 @@ pub enum Item {
     SwampKeySmall02,
     SwampKeySmall03,
     SwampKeySmall04,
+    SwampKeyRing,
 
     // Skull Woods
     SkullCompass,
@@ -815,11 +822,13 @@ pub enum Item {
     SkullKeySmall01,
     SkullKeySmall02,
     SkullKeySmall03,
+    SkullKeyRing,
 
     // Thieves' Hideout
     ThievesCompass,
     ThievesKeyBig,
     ThievesKeySmall,
+    ThievesKeyRing,
 
     // Ice Ruins
     IceCompass,
@@ -827,6 +836,7 @@ pub enum Item {
     IceKeySmall01,
     IceKeySmall02,
     IceKeySmall03,
+    IceKeyRing,
 
     // Desert Palace
     DesertCompass,
@@ -836,6 +846,7 @@ pub enum Item {
     DesertKeySmall03,
     DesertKeySmall04,
     DesertKeySmall05,
+    DesertKeyRing,
 
     // Turtle Rock
     TurtleCompass,
@@ -843,6 +854,7 @@ pub enum Item {
     TurtleKeySmall01,
     TurtleKeySmall02,
     TurtleKeySmall03,
+    TurtleKeyRing,
 
     // Lorule Castle
     LoruleCastleCompass,
@@ -851,6 +863,7 @@ pub enum Item {
     LoruleCastleKeySmall03,
     LoruleCastleKeySmall04,
     LoruleCastleKeySmall05,
+    LoruleCastleKeyRing,
 
     // Dungeon Prizes
     PendantOfPower,
@@ -1031,6 +1044,21 @@ impl Item {
             TurtleCompass => game::Item::CompassTurtle,
             LoruleCastleCompass => game::Item::CompassCastle,
 
+            // Key Rings
+            EasternKeyRing => game::Item::KeyRingEastern,
+            GalesKeyRing => game::Item::KeyRingGales,
+            HeraKeyRing => game::Item::KeyRingHera,
+            DarkKeyRing => game::Item::KeyRingDark,
+            SwampKeyRing => game::Item::KeyRingSwamp,
+            SkullKeyRing => game::Item::KeyRingSkull,
+            ThievesKeyRing => game::Item::KeyRingThieves,
+            IceKeyRing => game::Item::KeyRingIce,
+            DesertKeyRing => game::Item::KeyRingDesert,
+            TurtleKeyRing => game::Item::KeyRingTurtle,
+            LoruleCastleKeyRing => game::Item::KeyRingCastle,
+            HyruleSanctuaryKeyRing => game::Item::KeyRingHyrule,
+            LoruleSanctuaryKeyRing => game::Item::KeyRingLorule,
+
             GreatSpin => game::Item::SpecialMove,
             RupeeGreen => game::Item::RupeeG,
             RupeeBlue => game::Item::RupeeB,
@@ -1181,47 +1209,47 @@ impl Item {
 
             OreYellow | OreGreen | OreBlue | OreRed => "some",
 
-            HyruleSanctuaryKey | LoruleSanctuaryKey => "the",
+            HyruleSanctuaryKey | HyruleSanctuaryKeyRing | LoruleSanctuaryKey | LoruleSanctuaryKeyRing => "the",
 
-            EasternCompass | EasternKeyBig => "the",
+            EasternCompass | EasternKeyBig | EasternKeyRing => "the",
 
             EasternKeySmall01 | EasternKeySmall02 => "an",
 
-            GalesCompass | GalesKeyBig => "the",
+            GalesCompass | GalesKeyBig | GalesKeyRing => "the",
 
             GalesKeySmall01 | GalesKeySmall02 | GalesKeySmall03 | GalesKeySmall04 => "a",
 
-            HeraCompass | HeraKeyBig => "the",
+            HeraCompass | HeraKeyBig | HeraKeyRing => "the",
 
             HeraKeySmall01 | HeraKeySmall02 => "a",
 
-            DarkCompass | DarkKeyBig => "the",
+            DarkCompass | DarkKeyBig | DarkKeyRing => "the",
 
             DarkKeySmall01 | DarkKeySmall02 | DarkKeySmall03 | DarkKeySmall04 => "a",
 
-            SwampCompass | SwampKeyBig => "the",
+            SwampCompass | SwampKeyBig | SwampKeyRing => "the",
 
             SwampKeySmall01 | SwampKeySmall02 | SwampKeySmall03 | SwampKeySmall04 => "a",
 
-            SkullCompass | SkullKeyBig => "the",
+            SkullCompass | SkullKeyBig | SkullKeyRing => "the",
 
             SkullKeySmall01 | SkullKeySmall02 | SkullKeySmall03 => "a",
 
-            ThievesCompass | ThievesKeyBig | ThievesKeySmall => "the",
+            ThievesCompass | ThievesKeyBig | ThievesKeySmall | ThievesKeyRing => "the",
 
-            IceCompass | IceKeyBig => "the",
+            IceCompass | IceKeyBig | IceKeyRing => "the",
 
             IceKeySmall01 | IceKeySmall02 | IceKeySmall03 => "an",
 
-            DesertCompass | DesertKeyBig => "the",
+            DesertCompass | DesertKeyBig | DesertKeyRing => "the",
 
             DesertKeySmall01 | DesertKeySmall02 | DesertKeySmall03 | DesertKeySmall04 | DesertKeySmall05 => "a",
 
-            TurtleCompass | TurtleKeyBig => "the",
+            TurtleCompass | TurtleKeyBig | TurtleKeyRing => "the",
 
             TurtleKeySmall01 | TurtleKeySmall02 | TurtleKeySmall03 => "a",
 
-            LoruleCastleCompass => "the",
+            LoruleCastleCompass | LoruleCastleKeyRing => "the",
 
             LoruleCastleKeySmall01
             | LoruleCastleKeySmall02
@@ -1323,40 +1351,53 @@ impl Item {
             Mail01 | Mail02 => "Mail+",
             OreYellow | OreGreen | OreBlue | OreRed => "Master Ore",
             HyruleSanctuaryKey => "Hyrule Sewers Key",
+            HyruleSanctuaryKeyRing => "Hyrule Sewers Key Ring",
             LoruleSanctuaryKey => "Lorule Sewers Key",
+            LoruleSanctuaryKeyRing => "Lorule Sewers Key Ring",
             EasternCompass => "Eastern Palace Compass",
             EasternKeyBig => "Eastern Palace Big Key",
+            EasternKeyRing => "Eastern Palace Key Ring",
             EasternKeySmall01 | EasternKeySmall02 => "Eastern Palace Small Key",
             GalesCompass => "House of Gales Compass",
             GalesKeyBig => "House of Gales Big Key",
+            GalesKeyRing => "House of Gales Key Ring",
             GalesKeySmall01 | GalesKeySmall02 | GalesKeySmall03 | GalesKeySmall04 => "House of Gales Small Key",
             HeraCompass => "Tower of Hera Compass",
             HeraKeyBig => "Tower of Hera Big Key",
+            HeraKeyRing => "Tower of Hera Key Ring",
             HeraKeySmall01 | HeraKeySmall02 => "Tower of Hera Small Key",
             DarkCompass => "Dark Palace Compass",
             DarkKeyBig => "Dark Palace Big Key",
+            DarkKeyRing => "Dark Palace Key Ring",
             DarkKeySmall01 | DarkKeySmall02 | DarkKeySmall03 | DarkKeySmall04 => "Dark Palace Small Key",
             SwampCompass => "Swamp Palace Compass",
             SwampKeyBig => "Swamp Palace Big Key",
+            SwampKeyRing => "Swamp Palace Key Ring",
             SwampKeySmall01 | SwampKeySmall02 | SwampKeySmall03 | SwampKeySmall04 => "Swamp Palace Small Key",
             SkullCompass => "Skull Woods Compass",
             SkullKeyBig => "Skull Woods Big Key",
+            SkullKeyRing => "Skull Woods Key Ring",
             SkullKeySmall01 | SkullKeySmall02 | SkullKeySmall03 => "Skull Woods Small Key",
             ThievesCompass => "Thieves' Hideout Compass",
             ThievesKeyBig => "Thieves' Hideout Big Key",
+            ThievesKeyRing => "Thieves' Hideout Key Ring",
             ThievesKeySmall => "Thieves' Hideout Small Key",
             IceCompass => "Ice Ruins Compass",
             IceKeyBig => "Ice Ruins Big Key",
+            IceKeyRing => "Ice Ruins Key Ring",
             IceKeySmall01 | IceKeySmall02 | IceKeySmall03 => "Ice Ruins Small Key",
             DesertCompass => "Desert Palace Compass",
             DesertKeyBig => "Desert Palace Big Key",
+            DesertKeyRing => "Desert Palace Key Ring",
             DesertKeySmall01 | DesertKeySmall02 | DesertKeySmall03 | DesertKeySmall04 | DesertKeySmall05 => {
                 "Desert Palace Small Key"
             },
             TurtleCompass => "Turtle Rock Compass",
             TurtleKeyBig => "Turtle Rock Big Key",
+            TurtleKeyRing => "Turtle Rock Key Ring",
             TurtleKeySmall01 | TurtleKeySmall02 | TurtleKeySmall03 => "Turtle Rock Small Key",
             LoruleCastleCompass => "Lorule Castle Compass",
+            LoruleCastleKeyRing => "Lorule Castle Key Ring",
             LoruleCastleKeySmall01
             | LoruleCastleKeySmall02
             | LoruleCastleKeySmall03
