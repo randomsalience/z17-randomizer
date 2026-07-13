@@ -116,6 +116,10 @@ fn to_get_item(item: &Item) -> GetItem {
             GetItem(item.as_str().into(), "Actor/GtEvNet.bch".into(), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0, "".into(), "".into(), "".into(), -2, -2, -2, 0, 2)
         },
+        Item::BeeTrap => {
+            GetItem(item.as_str().into(), "Actor/GtEvBottleBee.bch".into(), 1.3, 0.0, 0.0, 0.0, 0.0, -0.3, 0.0,
+                -50.0, 15.0, 0.0, "fly".into(), "Bee".into(), "".into(), -2, 0, 0, 0, 1)
+        },
         _ => { panic!("No get item entry found for item {}", item.as_str()); }
     }
 }

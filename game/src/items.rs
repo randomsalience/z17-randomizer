@@ -371,6 +371,9 @@ Item(u16) {
     KeyRingHyrule = 0xA0,
     /// Key Ring (Lorule Sanctuary)
     KeyRingLorule = 0xA1,
+
+    /// Bee Trap
+    BeeTrap = 0xA2,
 }}
 
 impl Item {
@@ -458,6 +461,7 @@ impl Item {
             Item::KeyRingCastle => "key_ring_castle",
             Item::KeyRingHyrule => "key_ring_hyrule",
             Item::KeyRingLorule => "key_ring_lorule",
+            Item::BeeTrap => "bee_trap",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }
@@ -530,6 +534,7 @@ impl Item {
             Item::KeyRingCastle => "You got the key ring for Lorule Castle!",
             Item::KeyRingHyrule => "You got the key ring for Hyrule Sanctuary!",
             Item::KeyRingLorule => "You got the key ring for Lorule Sanctuary!",
+            Item::BeeTrap => "BEEEEEEEES!",
             _ => { panic!("No get item message name found for item {}", self.as_str()); }
         }
     }

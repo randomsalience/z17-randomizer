@@ -920,6 +920,7 @@ pub enum Item {
     UpgradeBow,
     UpgradeLamp,
     UpgradeNet,
+    BeeTrap,
 }
 
 impl Item {
@@ -1134,6 +1135,7 @@ impl Item {
             UpgradeBow => game::Item::UpgradeBow,
             UpgradeLamp => game::Item::UpgradeLamp,
             UpgradeNet => game::Item::UpgradeNet,
+            BeeTrap => game::Item::BeeTrap,
         }
     }
 
@@ -1272,6 +1274,7 @@ impl Item {
             Merge01 | Merge02 => "a",
             UpgradeIceRod | UpgradeSandRod | UpgradeTornadoRod | UpgradeBombs | UpgradeFireRod | UpgradeHookshot
             | UpgradeBoomerang | UpgradeHammer | UpgradeBow | UpgradeLamp | UpgradeNet => "the",
+            BeeTrap => "a",
         }
     }
 
@@ -1434,6 +1437,7 @@ impl Item {
             UpgradeBow => "Bow Upgrade",
             UpgradeLamp => "Lamp Upgrade",
             UpgradeNet => "Net Upgrade",
+            BeeTrap => "Bee Trap",
         }
     }
 

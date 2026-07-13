@@ -538,6 +538,7 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         cmp(R4, CompassDesert as u32).ne(),
         cmp(R4, CompassTurtle as u32).ne(),
         cmp(R4, CompassCastle as u32).ne(),
+        cmp(R4, Item::BeeTrap as u32).ne(),
         b(receive_items_quick).eq(),
         // Call get item routine
         ldr(R0, PLAYER_OBJECT_SINGLETON),
@@ -918,7 +919,49 @@ fn new_items(code: &mut Code) {
         b(0x344f00),
     ]);
 
-    code.patch(0x3459c0, [b(fn_add_key_ring)]);
+    let fn_add_bee_trap = code.text().define([
+        cmp(R0, Item::BeeTrap as u32),
+        b(fn_add_key_ring).ne(),
+
+        sub(SP, SP, 0xc),
+        mov(R5, 0),
+    ]);
+    let lbl_spawn_bee = code.text;
+    code.text().define([
+        // load vector (0.0, 0.5, 0.0)
+        mov(R0, 0),
+        ldr(R1, 0x3f000000), // 0.5
+        str_(R0, (SP, 0)),
+        str_(R1, (SP, 4)),
+        str_(R0, (SP, 8)),
+
+        // load player position
+        ldr(R0, PLAYER_OBJECT_SINGLETON),
+        ldr(R0, (R0, 0)),
+        ldr(R1, (R0, 0x1c)),
+
+        // add (0.0, 0.5, 0.0) to player position
+        mov(R0, SP),
+        mov(R2, SP),
+        bl(FN_VECTOR_ADD),
+
+        // call createBee
+        mov(R0, SP),
+        mov(R1, 0),
+        mov(R2, 0),
+        mov(R3, 0),
+        bl(0x4cbb0c),
+
+        // loop 8 times
+        add(R5, R5, 1),
+        cmp(R5, 8),
+        b(lbl_spawn_bee).lt(),
+
+        add(SP, SP, 0xc),
+        b(0x344f00),
+    ]);
+
+    code.patch(0x3459c0, [b(fn_add_bee_trap)]);
 }
 
 fn starting_gear(code: &mut Code, settings: &Settings) {
@@ -2062,7 +2105,7 @@ const ACTOR_NAME_OFFSETS: [(Item, u32); 28] = [
     (HeartPiece, 0x5D7B94),
 ];
 
-const ACTOR_NAMES: [(Item, &str); 107] = [
+const ACTOR_NAMES: [(Item, &str); 108] = [
     (RupeeG, "RupeeG"),
     (RupeeB, "RupeeB"),
     (RupeeR, "RupeeR"),
@@ -2170,6 +2213,7 @@ const ACTOR_NAMES: [(Item, &str); 107] = [
     (KeyRingDesert, "KeySmall"),
     (KeyRingTurtle, "KeySmall"),
     (KeyRingCastle, "KeySmall"),
+    (Item::BeeTrap, "GtEvBottleBee"),
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2197,7 +2241,7 @@ const ITEM_NAME_OFFSETS: [(Item, u32); 20] = [
     (RupeeGold, 0x6f9be2),       // item_name_sandrod_rental
 ];
 
-const ITEM_NAMES: [(Item, &str); 115] = [
+const ITEM_NAMES: [(Item, &str); 116] = [
     (BadgeBee, "beebadge"),
     (Compass, "compass"),
     (ItemBell, "bell"),
@@ -2313,6 +2357,7 @@ const ITEM_NAMES: [(Item, &str); 115] = [
     (KeyRingDesert, "key_ring_desert"),
     (KeyRingTurtle, "key_ring_turtle"),
     (KeyRingCastle, "key_ring_castle"),
+    (Item::BeeTrap, "bee_trap"),
 ];
 
 const EVENT_FLAG_PTR: u32 = 0x70B728;
@@ -2337,3 +2382,4 @@ const SAVE_MANAGER: u32 = 0x711de8;
 const VTABLE_STRING: u32 = 0x6F5988;
 const VTABLE_FIXED_STRING_10: u32 = 0x6f5b94;
 const FN_STRING_FORMAT: u32 = 0x4994b0;
+const FN_VECTOR_ADD: u32 = 0x115c54;
