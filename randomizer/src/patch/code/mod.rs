@@ -631,16 +631,19 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
 
     // Change get item text for Archipelago items
     let ap_item_format_string = code.rodata().declare("ap_item_%d\0".to_string().into_bytes());
+    let normal_get_item_message = code.text().define([
+        pop([R0, R1, R2, R3]),
+        bl(0x51bb74),
+        add(SP, SP, 0x1c),
+        b(0x28ea14),
+    ]);
     let patch_get_item_message = code.text().define([
         sub(SP, SP, 0x1c),
         push([R0, R1, R2, R3]),
         // if bit 15 of item ID is not set (not an AP item), proceed as usual
         ldr(R1, (R4, 0x74)),
         tst(R1, 0x8000),
-        pop([R0, R1, R2, R3]).eq(),
-        bl(0x51bb74).eq(),
-        add(SP, SP, 0x1c).eq(),
-        b(0x28ea14).eq(),
+        b(normal_get_item_message).eq(),
         // strip bit 15 from item ID
         ldr(R3, 0x7fff),
         and(R2, R1, R3),
