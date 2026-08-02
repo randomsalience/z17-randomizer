@@ -375,20 +375,24 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 }
 
 fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
+    let ap_data_ptr = 0x6e9170u32;
     let archipelago_header = code.rodata().declare([0x41, 0x52, 0x43, 0x48]); // magic number
-    code.rodata().declare([2, 0, 0, 0]); // data version
+    code.rodata().declare([3, 0, 0, 0]); // data version
     code.rodata().declare(seed.to_le_bytes()); // seed
-    code.rodata().declare([0xff, 0xff, 0xff, 0xff]); // placeholder for received item
+    code.rodata().declare(ap_data_ptr.to_le_bytes()); // pointer to writeable data
     let mut name_bytes = name.as_bytes().to_vec();
     name_bytes.resize(0x40, 0);
     code.rodata().declare(name_bytes); // username padded to 0x40 bytes
-    let received_items_counter = code.rodata().declare([0xff, 0xff, 0xff, 0xff]);
-    let framework_pointer = code.rodata().declare([0, 0, 0, 0]);
-    let death_link_flag = code.rodata().declare([0, 0, 0, 0]);
+
+    let get_item = ap_data_ptr;
+    code.overwrite(get_item, 0xffffffffu32.to_le_bytes());
+    let received_items_counter = ap_data_ptr + 4;
+    code.overwrite(received_items_counter, 0u32.to_le_bytes());
+    let death_link_flag = ap_data_ptr + 8;
+    code.overwrite(death_link_flag, 0u32.to_le_bytes());
 
     let handle_death_link = code.text().define([
         push([R0, R1, R2, R3, R4, LR]),
-        
 
         // Get DeathLink flag
         ldr(R4, death_link_flag),
@@ -437,15 +441,6 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         pop([R0, R1, R2, R3, R4, PC]),
     ]);
 
-    // Store the framework pointer for use by the client
-    let store_framework_pointer = code.text().define([
-        ldr(R5, framework_pointer),
-        str_(R0, (R5, 0)),
-        mov(R5, R0),
-        b(0x101130),
-    ]);
-    code.patch(0x10112c, [b(store_framework_pointer)]);
-
     // Save Archipelago information
     let patch_create_save = code.text().define([
         bl(0x320d78),
@@ -467,7 +462,7 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     // Receive items from the server
     let receive_items_timer = code.rodata().declare([0, 0, 0, 0]);
     let receive_items_skip = code.text().define([
-        pop(&[R0, R1, R4, R5, R6, LR]),
+        pop([R0, R1, R4, R5, R6, LR]),
         b(0x349214),
     ]);
     let receive_items_quick = code.text().define([
@@ -487,11 +482,11 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         add(R5, R5, 1),
         str_(R5, (R4, 0)),
         // Set received item to -1
-        ldr(R4, archipelago_header),
+        ldr(R4, get_item),
         ldr(R5, -0x1),
-        str_(R5, (R4, 0xc)),
+        str_(R5, (R4, 0)),
         // Return to main Link procedure
-        pop(&[R0, R1, R4, R5, R6, LR]),
+        pop([R0, R1, R4, R5, R6, LR]),
         b(0x349214),
     ]);
     let receive_items = code.text().define([
@@ -502,8 +497,8 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         cmp(R1, 0x1).ne(),
         b(receive_items_skip).ne(),
         // Return to normal function if received item is -1
-        ldr(R4, archipelago_header),
-        ldr(R4, (R4, 0xc)),
+        ldr(R4, get_item),
+        ldr(R4, (R4, 0)),
         add(R5, R4, 0x1),
         cmp(R5, 0x0),
         b(receive_items_skip).eq(),
@@ -555,10 +550,10 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         add(R5, R5, 1),
         str_(R5, (R4, 0)),
         // Set received item to -1
-        ldr(R4, archipelago_header),
+        ldr(R4, get_item),
         ldr(R5, -0x1),
-        str_(R5, (R4, 0xc)),
-        pop(&[R0, R1, R4, R5, R6, LR]),
+        str_(R5, (R4, 0)),
+        pop([R0, R1, R4, R5, R6, LR]),
         bx(LR),
     ]);
     code.addr(0x6e30ac, receive_items);
@@ -579,9 +574,9 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         ldr(R2, (R2, 0xdec)),
         str_(R2, (R1, 0)),
         // Clear received item
-        ldr(R1, archipelago_header),
+        ldr(R1, get_item),
         ldr(R2, -1),
-        str_(R2, (R1, 0xc)),
+        str_(R2, (R1, 0)),
         // Set received item timer
         ldr(R1, receive_items_timer),
         mov(R2, 0x1e),
