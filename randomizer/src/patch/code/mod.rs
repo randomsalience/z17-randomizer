@@ -390,6 +390,8 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     code.overwrite(received_items_counter, 0u32.to_le_bytes());
     let death_link_flag = ap_data_ptr + 8;
     code.overwrite(death_link_flag, 0u32.to_le_bytes());
+    let in_game_flag = ap_data_ptr + 0xc;
+    code.overwrite(in_game_flag, 0u32.to_le_bytes());
 
     let handle_death_link = code.text().define([
         push([R0, R1, R2, R3, R4, LR]),
@@ -671,6 +673,22 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
         b(0x28e544),
     ]);
     code.patch(0x28e540, [b(get_correct_get_item)]);
+
+    // Set in-game flag when the game starts and clear it when it stops
+    let start_game = code.text().define([
+        mov(R2, 1),
+        ldr(R1, in_game_flag),
+        str_(R2, (R1, 0)),
+        b(0x1e3134),
+    ]);
+    code.overwrite(0x6d1e14, start_game.to_le_bytes());
+    let end_game = code.text().define([
+        mov(R2, 0),
+        ldr(R1, in_game_flag),
+        str_(R2, (R1, 0)),
+        b(0x1e30e0),
+    ]);
+    code.overwrite(0x6d1e1c, end_game.to_le_bytes());
 }
 
 #[allow(unused_variables)]
