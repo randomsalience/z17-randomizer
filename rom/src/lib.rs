@@ -33,7 +33,7 @@ use crate::{language::Load, scene::SceneMeta};
 pub mod actors;
 pub mod course;
 pub mod demo;
-mod files;
+pub mod files;
 pub mod flag;
 pub mod flow;
 pub mod font;

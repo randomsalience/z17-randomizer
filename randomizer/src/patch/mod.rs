@@ -606,6 +606,7 @@ impl Patcher {
     fn prepare_inner(mut self, seed_info: &SeedInfo, py: Option<Python>) -> Result<Patches> {
         regions::patch(&mut self, seed_info)?;
         actors::patch(&mut self, seed_info)?;
+        lms::patch_msbp(&mut self)?;
         lms::msbf::patch(&mut self, seed_info)?;
         messages::patch_messages(&mut self, seed_info)?;
         let prizes = get_dungeon_prizes(&seed_info.layout);
@@ -679,7 +680,6 @@ impl Patcher {
                 common_archive.add(item_actors.get(&Item::HeartContainer).unwrap().clone())?;
             }
         }
-
         
         info!("Patching Code...");
         let code = code::create(&self, seed_info);

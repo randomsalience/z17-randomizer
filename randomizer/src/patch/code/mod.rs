@@ -371,6 +371,9 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
         code.text().define([ldr(R0, (R4, 0x4E4)), cmp(R0, 0x3), mov(R2, 0x2).ne(), mov(R2, 0x3).eq(), b(0x344df0)]);
     code.patch(0x344dec, [b(great_spin_fix)]);
 
+    // Increase number of text colors from 12 to 14
+    code.patch(0x2cb258, [cmp(R4, 0xE)]);
+
     code
 }
 

@@ -141,6 +141,18 @@ pub(crate) fn yuga_talking(text: &str) -> String {
     color(text, 0xB)
 }
 
+/// Plum Color: 0xAF99EFFF <br />
+/// This color is added for representing progression Archipelago items.
+pub(crate) fn plum(text: &str) -> String {
+    color(text, 0xC)
+}
+
+/// Slate Color: 0x6D8BE8FF <br />
+/// This color is added for representing useful Archipelago items.
+pub(crate) fn slate(text: &str) -> String {
+    color(text, 0xD)
+}
+
 pub(crate) fn color(text: &str, index: u16) -> String {
     let prefix = String::from_utf16(&[0xE, 0x0, 0x3, 0x2, index]).unwrap();
     let suffix = String::from_utf16(&[0xE, 0x0, 0x3, 0x2, 0xFFFF]).unwrap();

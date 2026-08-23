@@ -171,8 +171,8 @@ fn patch_event_item_get(patcher: &mut Patcher, seed_info: &SeedInfo) -> Result<(
             use crate::ClassificationType::*;
             let item_name = match archipelago_item.classification_type() {
                 ProgressionUseful => yellow(&archipelago_item.name),
-                Progression => green(&archipelago_item.name),
-                Useful => name(&archipelago_item.name),
+                Progression => plum(&archipelago_item.name),
+                Useful => slate(&archipelago_item.name),
                 Filler => yuga_talking(&archipelago_item.name),
                 Trap => attention(&archipelago_item.name),
             };
