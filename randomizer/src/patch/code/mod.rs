@@ -1233,7 +1233,7 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
             ldr(R1, offset + NEW_EVENT_FLAGS_START_IDX),
             mov(R2, 0x1),
             bl(FN_SET_EVENT_FLAG),
-            mov(R0, item.as_item_index()),
+            ldr(R0, item.as_item_index()),
             b(0x310134),
         ]);
         code.patch(addr, [b(fn_set_event_flag_for_this_upgrade)]);
