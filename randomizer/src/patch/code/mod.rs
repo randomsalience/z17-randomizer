@@ -4,7 +4,7 @@ use crate::filler::filler_item::Randomizable;
 use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use crate::patch::code::arm::Register::*;
 use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr, and, tst};
-use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb};
+use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb, strh};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
 use crate::{Layout, Result, SeedInfo, patch::util::prize_flag, regions};
@@ -1234,10 +1234,15 @@ fn mother_maiamai(code: &mut Code, layout: &Layout, item_names: &HashMap<Item, u
             mov(R2, 0x1),
             bl(FN_SET_EVENT_FLAG),
             ldr(R0, item.as_item_index()),
+            strh(R0, (R4, 0xae2)),
             b(0x310134),
         ]);
         code.patch(addr, [b(fn_set_event_flag_for_this_upgrade)]);
     }
+
+    // Store get item id in 0xae2 instead of 0xae0 so there is room for a 16-bit integer
+    code.patch(0x3100d8, [strh(R0, (R4, 0xae2))]);
+    code.patch(0x310a18, [ldrh(R1, (R4, 0xae2))]);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

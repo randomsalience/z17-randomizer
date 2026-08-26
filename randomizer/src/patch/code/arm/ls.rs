@@ -153,7 +153,6 @@ where
     instruction(addressing_mode.into().code(), true, false, rd)
 }
 
-#[allow(unused)]
 pub fn strh<A>(rd: Register, addressing_mode: A) -> Instruction
 where
     A: Into<AddressingMode>,
