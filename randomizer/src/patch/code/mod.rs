@@ -395,6 +395,8 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     code.overwrite(death_link_flag, 0u32.to_le_bytes());
     let in_game_flag = ap_data_ptr + 0xc;
     code.overwrite(in_game_flag, 0u32.to_le_bytes());
+    let receive_items_timer = ap_data_ptr + 0x10;
+    code.overwrite(receive_items_timer, 0u32.to_le_bytes());
 
     let handle_death_link = code.text().define([
         push([R0, R1, R2, R3, R4, LR]),
@@ -465,7 +467,6 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     code.patch(0x293acc, [b(patch_create_save)]);
 
     // Receive items from the server
-    let receive_items_timer = code.rodata().declare([0, 0, 0, 0]);
     let receive_items_skip = code.text().define([
         pop([R0, R1, R4, R5, R6, LR]),
         b(0x349214),
