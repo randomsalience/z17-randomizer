@@ -378,7 +378,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 }
 
 fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
-    let ap_data_ptr = 0x6e9170u32;
+    let ap_data_ptr = 0x6ff000u32;
     let archipelago_header = code.rodata().declare([0x41, 0x52, 0x43, 0x48]); // magic number
     code.rodata().declare([3, 0, 0, 0]); // data version
     code.rodata().declare(seed.to_le_bytes()); // seed
