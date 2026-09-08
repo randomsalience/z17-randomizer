@@ -34,5 +34,8 @@ mod albwrandomizer {
     };
 
     #[pymodule_export]
+    use game::Item as GetItem;
+
+    #[pymodule_export]
     use super::logging_on;
 }

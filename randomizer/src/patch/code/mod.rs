@@ -7,7 +7,7 @@ use crate::patch::code::arm::data::{add, sub, cmp, mov, mul, orr, and, tst};
 use crate::patch::code::arm::ls::{ldr, ldrb, ldrh, str_, strb, strh};
 use crate::patch::code::arm::lsm::{pop, push};
 use crate::patch::code::arm::{Instruction, LR, PC, SP, b, bl, bx, blx};
-use crate::{Layout, Result, SeedInfo, patch::util::prize_flag, regions};
+use crate::{ArchipelagoInfo, Layout, Result, SeedInfo, patch::util::prize_flag, regions};
 use game::{Course, Item, Item::*};
 use modinfo::settings::{Settings, Cracks, HintGhosts, PedestalSetting::*};
 use rom::ExHeader;
@@ -176,7 +176,7 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     
     // This must be called first so the Archipelago header goes in the correct location
     if let Some(info) = &seed_info.archipelago_info {
-        patch_archipelago(&mut code, seed_info.seed, &info.name);
+        patch_archipelago(&mut code, seed_info.seed, &info);
     }
     
     let actor_names = actor_names(&mut code);
@@ -277,11 +277,12 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
 
     let overwrite_rentals = code.text;
     let mut actor_offset = 0;
-    for rental in patcher.rentals.iter() {
+    for i in 0..9 {
+        let actor_item = patcher.get_ravio_item_actor(seed_info, i);
         let actor = actor_names
-            .get(&rental.normalize())
+            .get(&actor_item)
             .copied()
-            .unwrap_or_else(|| panic!("Could not find actor name for {}", rental.as_str()));
+            .unwrap_or_else(|| panic!("Could not find actor name for {}", actor_item.as_str()));
         code.text().define([
             ldr(R1, actor),
             str_(R4, (R0, actor_offset)),
@@ -305,14 +306,14 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     let sold_out = 0x5D6B84u32;
     let merchant_left = patcher.merchant[0];
     let merchant_left_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_left.normalize()).unwrap().to_le_bytes());
+    code.rodata().declare(actor_names.get(&patcher.get_street_merchant_left_actor(seed_info)).unwrap().to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DD4, merchant_left_actor.to_le_bytes());
     code.overwrite(0x6A03E0, (merchant_left.as_item_index() as u16).to_le_bytes());
     let merchant_right = patcher.merchant[2];
     let merchant_right_actor = code.rodata().declare(VTABLE_STRING.to_le_bytes());
-    code.rodata().declare(actor_names.get(&merchant_right.normalize()).unwrap().to_le_bytes());
+    code.rodata().declare(actor_names.get(&patcher.get_street_merchant_right_actor(seed_info)).unwrap().to_le_bytes());
     code.rodata().declare(VTABLE_STRING.to_le_bytes());
     code.rodata().declare(sold_out.to_le_bytes());
     code.overwrite(0x707DE0, merchant_right_actor.to_le_bytes());
@@ -377,13 +378,13 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     code
 }
 
-fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
+fn patch_archipelago(code: &mut Code, seed: u32, archipelago_info: &ArchipelagoInfo) {
     let ap_data_ptr = 0x6ff000u32;
     let archipelago_header = code.rodata().declare([0x41, 0x52, 0x43, 0x48]); // magic number
     code.rodata().declare([3, 0, 0, 0]); // data version
     code.rodata().declare(seed.to_le_bytes()); // seed
     code.rodata().declare(ap_data_ptr.to_le_bytes()); // pointer to writeable data
-    let mut name_bytes = name.as_bytes().to_vec();
+    let mut name_bytes = archipelago_info.name.as_bytes().to_vec();
     name_bytes.resize(0x40, 0);
     code.rodata().declare(name_bytes); // username padded to 0x40 bytes
 
@@ -668,12 +669,32 @@ fn patch_archipelago(code: &mut Code, seed: u32, name: &str) {
     ]);
     code.patch(0x28ea10, [b(patch_get_item_message)]);
 
+    let mut ap_item_indices = HashMap::new();
+    let mut max_location_code = 0;
+    for (_, ap_item) in &archipelago_info.items {
+        ap_item_indices.insert(ap_item.location_code, ap_item.get_item_index);
+        if ap_item.location_code > max_location_code {
+            max_location_code = ap_item.location_code;
+        }
+    }
+
+    let ap_get_item_table = code.freespace().declare(
+        (0..max_location_code)
+            .flat_map(|i| ap_item_indices.get(&i).unwrap_or(&0x49u16).to_le_bytes())
+            .collect::<Vec<_>>()
+    );
+
     // Since we're using bit 15 of the item ID to represent an Archipelago item,
     // we have to convert to the actual item ID when loading the get item info
     let get_correct_get_item = code.text().define([
         ldr(R2, (R4, 0x74)),
         tst(R2, 0x8000),
-        mov(R2, 0x49).ne(),
+        b(0x28e544).eq(),
+        ldr(R3, 0x7fff),
+        and(R2, R2, R3),
+        add(R2, R2, R2),
+        ldr(R3, ap_get_item_table),
+        ldrh(R2, (R3, R2)),
         b(0x28e544),
     ]);
     code.patch(0x28e540, [b(get_correct_get_item)]);

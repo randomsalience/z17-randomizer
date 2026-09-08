@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 bytey = { workspace = true }
+pyo3 = { workspace = true }
 serde = { workspace = true }
 serde_repr = "0.1.16"
 strum = { workspace = true }

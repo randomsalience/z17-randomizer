@@ -336,6 +336,7 @@ pub struct ArchipelagoItem {
     pub player_name: String,
     pub classification: u8,
     pub location_code: u16,
+    pub get_item_index: u16,
 }
 
 pub enum ClassificationType {
@@ -349,8 +350,8 @@ pub enum ClassificationType {
 #[pymethods]
 impl ArchipelagoItem {
     #[new]
-    pub fn new(name: String, player_name: String, classification: u8, location_code: u16) -> ArchipelagoItem {
-        ArchipelagoItem {name, player_name, classification, location_code}
+    pub fn new(name: String, player_name: String, classification: u8, location_code: u16, get_item_index: u16) -> ArchipelagoItem {
+        ArchipelagoItem {name, player_name, classification, location_code, get_item_index}
     }
 }
 
@@ -403,6 +404,13 @@ impl ArchipelagoInfo {
             .get(location_name)
             .map(|item| item.name.clone())
             .ok_or(Error::internal(format!("Patch file does not contain an item for location {}", location_name)))
+    }
+
+    pub fn get_get_item(&self, location_name: &str) -> Item {
+        self.items
+            .get(location_name)
+            .map(|item| Item::try_from(item.get_item_index).unwrap_or(Item::MessageBottle))
+            .unwrap_or(Item::MessageBottle)
     }
 }
 

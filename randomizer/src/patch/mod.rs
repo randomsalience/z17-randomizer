@@ -596,6 +596,31 @@ impl Patcher {
         Ok(())
     }
 
+    pub fn get_ravio_item_actor(&self, seed_info: &SeedInfo, index: usize) -> Item {
+        if let Some(archipelago_info) = &seed_info.archipelago_info {
+            let loc_name = format!("Ravio's Shop ({})", [1, 6, 3, 4, 9, 2, 8, 7, 5][index]);
+            archipelago_info.get_get_item(&loc_name)
+        } else {
+            self.rentals[index].normalize()
+        }
+    }
+
+    pub fn get_street_merchant_left_actor(&self, seed_info: &SeedInfo) -> Item {
+        if let Some(archipelago_info) = &seed_info.archipelago_info {
+            archipelago_info.get_get_item("Street Merchant (Left)")
+        } else {
+            self.merchant[0].normalize()
+        }
+    }
+
+    pub fn get_street_merchant_right_actor(&self, seed_info: &SeedInfo) -> Item {
+        if let Some(archipelago_info) = &seed_info.archipelago_info {
+            archipelago_info.get_get_item("Street Merchant (Right)")
+        } else {
+            self.merchant[2].normalize()
+        }
+    }
+
     pub fn prepare(self, seed_info: &SeedInfo, py: Option<Python>) -> Result<Patches> {
         init_progress_bar(py);
         let result = self.prepare_inner(seed_info, py);
@@ -619,7 +644,6 @@ impl Patcher {
 
         let mut common_archive = self.game.common()?;
         let mut item_actors = HashMap::new();
-        let mut get_item_actors = Vec::new();
 
         info!("Patching Item Actors...");
         for (item, get_item) in self.game.match_items_to_get_items() {
@@ -629,9 +653,6 @@ impl Patcher {
                 actor.rename(String::from("World/Actor/SwordD.bch"));
                 item_actors.insert(item, actor);
             } else if let Some(mut actor) = get_item.actor(&self.game) {
-                let mut get_item_actor = actor.clone();
-                get_item_actor.rename(format!("World/GetItem/{}.bch", get_item.name()));
-                get_item_actors.push(get_item_actor);
                 actor.rename(format!("World/Actor/{}.bch", get_item.actor_name()?));
                 item_actors.insert(item, actor);
             }
@@ -659,26 +680,26 @@ impl Patcher {
             item_actors.insert(item, actor.into_bytes());
         }
 
-        {
-            let Self { ref rentals, ref merchant, ref mut courses, .. } = self;
-            let your_house_actors = courses.get_mut(&IndoorLight).unwrap().scenes.get_mut(&0).unwrap().actors_mut();
-            for actor in rentals.iter().filter_map(|item| item_actors.get(&item.normalize())) {
-                your_house_actors.add(actor.clone())?;
-            }
-            let kakariko_actors = courses.get_mut(&FieldLight).unwrap().scenes.get_mut(&15).unwrap().actors_mut();
-            kakariko_actors.add(item_actors.get(&merchant[0].normalize()).unwrap().clone())?;
-            kakariko_actors.add(item_actors.get(&merchant[2].normalize()).unwrap().clone())?;
+        for i in 0..9 {
+            let actor = item_actors.get(&self.get_ravio_item_actor(seed_info, i)).unwrap();
+            let your_house_actors = self.courses.get_mut(&IndoorLight).unwrap().scenes.get_mut(&0).unwrap().actors_mut();
+            your_house_actors.add(actor.clone())?;
+        }
+        let street_merchant_left_actor = self.get_street_merchant_left_actor(seed_info);
+        let street_merchant_right_actor = self.get_street_merchant_right_actor(seed_info);
+        let kakariko_actors = self.courses.get_mut(&FieldLight).unwrap().scenes.get_mut(&15).unwrap().actors_mut();
+        kakariko_actors.add(item_actors.get(&street_merchant_left_actor).unwrap().clone())?;
+        kakariko_actors.add(item_actors.get(&street_merchant_right_actor).unwrap().clone())?;
 
-            if seed_info.settings.change_freestanding_models {
-                for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {
-                    for (name, _, _, _) in data {
-                        let item = seed_info.layout.get_by_name(name).normalize();
-                        common_archive.add(item_actors.get(&item).unwrap().clone())?;
-                    }
+        if seed_info.settings.change_freestanding_models {
+            for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {
+                for (name, _, _, _) in data {
+                    let item = seed_info.layout.get_by_name(name).normalize();
+                    common_archive.add(item_actors.get(&item).unwrap().clone())?;
                 }
-                common_archive.add(item_actors.get(&Item::HeartPiece).unwrap().clone())?;
-                common_archive.add(item_actors.get(&Item::HeartContainer).unwrap().clone())?;
             }
+            common_archive.add(item_actors.get(&Item::HeartPiece).unwrap().clone())?;
+            common_archive.add(item_actors.get(&Item::HeartContainer).unwrap().clone())?;
         }
         
         info!("Patching Code...");
@@ -738,9 +759,6 @@ impl Patcher {
         for cutscene in cutscenes {
             romfs.add(cutscene);
             update_progress_bar(&mut progress, step, py);
-        }
-        for actor in get_item_actors {
-            romfs.add(actor);
         }
         Ok(Patches { game, code, romfs })
     }

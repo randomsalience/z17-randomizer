@@ -1,9 +1,13 @@
+use pyo3::pyclass;
+
 crate::int_map! {
 /**
  * An enum for in-game items.
  *
  * Item indexes match the array indexes found in `World/Byaml/GetItem.byaml`.
  */
+#[pyclass]
+#[pyo3(name = "GetItem")]
 Item(u16) {
     /**
      * An `Empty` item, or no item. Shows Link holding up nothing with the text: "It's Empty"
