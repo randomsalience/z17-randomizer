@@ -192,6 +192,7 @@ impl Layout {
         self.get(name, subregion).unwrap_or_else(|| panic!("Location unexpectedly empty: {}", name))
     }
 
+    #[allow(unused)]
     fn get_by_name(&self, name: &str) -> Randomizable {
         for category in [&self.hyrule, &self.lorule, &self.dungeons] {
             for (_, region) in category {

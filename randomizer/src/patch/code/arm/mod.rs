@@ -206,7 +206,7 @@ impl Instruction {
                 let signed_immed_24 = ((target_address.diff(assembler.pc()) - 8) >> 2) & 0xFFFFFF;
                 0xA000000 | (link as u32) << 24 | u32::from_ne_bytes(signed_immed_24.to_ne_bytes()) | cond.shift()
             },
-            Self::Pseudo(cond, pseudo) => pseudo.into_raw(assembler).assemble(assembler) | cond.shift(),
+            Self::Pseudo(cond, pseudo) => pseudo.into_raw(assembler).with_condition(cond).assemble(assembler),
         }
     }
 

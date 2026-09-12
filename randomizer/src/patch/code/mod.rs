@@ -216,8 +216,8 @@ pub fn create(patcher: &Patcher, seed_info: &SeedInfo) -> Code {
     if seed_info.is_archipelago() && seed_info.settings.shuffle_maiamai_rewards {
         archipelago_mother_maiamai(&mut code, &seed_info.mother_maiamai_costs);
     }
-    if seed_info.settings.change_freestanding_models {
-        item_models(&mut code, &seed_info.layout, &actor_names);
+    if seed_info.settings.change_freestanding_models && let Some(archipelago_info) = &seed_info.archipelago_info {
+        item_models(&mut code, &archipelago_info, &actor_names);
     }
     pause_menu_warp(&mut code);
     purple_potion_bottles(&mut code, &seed_info.settings);
@@ -1391,7 +1391,7 @@ fn archipelago_mother_maiamai(code: &mut Code, mother_maiamai_costs: &[u8]) {
 }
 
 /// Replace freestanding item models
-fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32>) {
+fn item_models(code: &mut Code, archipelago_info: &ArchipelagoInfo, actor_names: &HashMap<Item, u32>) {
     // Load heart piece / container BCH index from arg 0
     code.patch(0x334cb4, [ldrh(R2, (R4, 0x2C))]);
     // Load small key BCH index from arg 2
@@ -1414,7 +1414,7 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
                     VTABLE_STRING.to_le_bytes()
                         .into_iter()
                         .chain(actor_names
-                            .get(&layout.get_by_name(name).normalize())
+                            .get(&archipelago_info.get_get_item(name))
                             .unwrap()
                             .to_le_bytes()
                             .into_iter()))
@@ -1429,9 +1429,30 @@ fn item_models(code: &mut Code, layout: &Layout, actor_names: &HashMap<Item, u32
     code.overwrite(0x693d09, [SMALL_KEYS.len() as u8 + 1]);
     code.overwrite(0x693d4b, [RUPEES.len() as u8 + 1]);
 
-    // Get models from ActorCommon instead of stage archive
-    code.overwrite(0x693b0c, [0]);
-    code.overwrite(0x693b0d, [0]);
+    // Allow actor BCH to be loaded from World/GetItem
+    let get_item_directory = code.rodata().declare("GetItem/\0".to_string().into_bytes());
+    let set_bch_directory = code.text().define([
+        ldrb(R0, (SP, 0x35)),
+        cmp(R0, 0xff),
+        ldr(R0, 0x19b3a4).ne(),
+        ldr(R0, get_item_directory).eq(),
+        b(0x19b198),
+    ]);
+    code.patch(0x19b194, [b(set_bch_directory)]);
+
+    // Use non-archived BCH for freestanding item actors
+    let set_archive_none = code.text().define([
+        ldr(R0, (R11, 8)),
+        cmp(R0, 0xad),
+        cmp(R0, 0xac).ne(),
+        cmp(R0, 0x29).ne(),
+        cmp(R0, 0x6b).ne(),
+        cmp(R0, 0x6a).ne(),
+        mov(R4, 1).eq(),
+        cmp(R4, 0),
+        b(0x19b160),
+    ]);
+    code.patch(0x19b15c, [b(set_archive_none)]);
 }
 
 fn pause_menu_warp(code: &mut Code) {

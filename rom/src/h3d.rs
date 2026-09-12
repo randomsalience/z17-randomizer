@@ -14,6 +14,7 @@ enum Section {
     Relocation,
 }
 
+#[derive(Clone)]
 pub struct Resource {
     sections: Vec<RefCell<Vec<u8>>>,
     relocations: Vec<HashMap<usize, Section>>,

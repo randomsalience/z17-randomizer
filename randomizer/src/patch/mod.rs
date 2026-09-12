@@ -2,7 +2,6 @@ use crate::filler::cracks::Crack;
 use crate::filler::filler_item::{self, Randomizable, Vane};
 use crate::regions;
 use crate::{patch::util::*, Error, Result, SeedInfo};
-use crate::patch::actors::{HEART_PIECES, HEART_CONTAINERS, SMALL_KEYS, RUPEES};
 use code::Code;
 use fs_extra::dir::CopyOptions;
 use game::{
@@ -642,8 +641,9 @@ impl Patcher {
         let scene_env_file = byaml::scene_env::patch(&mut self, &seed_info.settings);
         let cutscenes = demo::build_replacement_cutscenes(seed_info)?;
 
-        let mut common_archive = self.game.common()?;
+        let common_archive = self.game.common()?;
         let mut item_actors = HashMap::new();
+        let mut new_get_item_actors = Vec::new();
 
         info!("Patching Item Actors...");
         for (item, get_item) in self.game.match_items_to_get_items() {
@@ -668,6 +668,8 @@ impl Patcher {
                 .get_actor_bch("Rupee")?
                 .try_map(|data| h3d::Resource::from_bytes(&data))?;
             actor.rename(format!("World/Actor/{}.bch", name));
+            let mut get_item_actor = actor.clone();
+            get_item_actor.rename(format!("World/GetItem/{}.bch", name));
             let param = actor.get()
                 .get_model(0)?
                 .get_material(0)?
@@ -678,6 +680,7 @@ impl Patcher {
             param.set_tev_color(h3d::TevStage::Stage2, color4)?;
             param.set_tev_color(h3d::TevStage::Stage4, color3)?;
             item_actors.insert(item, actor.into_bytes());
+            new_get_item_actors.push(get_item_actor);
         }
 
         for i in 0..9 {
@@ -690,17 +693,6 @@ impl Patcher {
         let kakariko_actors = self.courses.get_mut(&FieldLight).unwrap().scenes.get_mut(&15).unwrap().actors_mut();
         kakariko_actors.add(item_actors.get(&street_merchant_left_actor).unwrap().clone())?;
         kakariko_actors.add(item_actors.get(&street_merchant_right_actor).unwrap().clone())?;
-
-        if seed_info.settings.change_freestanding_models {
-            for data in [HEART_PIECES.iter(), HEART_CONTAINERS.iter(), SMALL_KEYS.iter(), RUPEES.iter()] {
-                for (name, _, _, _) in data {
-                    let item = seed_info.layout.get_by_name(name).normalize();
-                    common_archive.add(item_actors.get(&item).unwrap().clone())?;
-                }
-            }
-            common_archive.add(item_actors.get(&Item::HeartPiece).unwrap().clone())?;
-            common_archive.add(item_actors.get(&Item::HeartContainer).unwrap().clone())?;
-        }
         
         info!("Patching Code...");
         let code = code::create(&self, seed_info);
@@ -759,6 +751,9 @@ impl Patcher {
         for cutscene in cutscenes {
             romfs.add(cutscene);
             update_progress_bar(&mut progress, step, py);
+        }
+        for actor in new_get_item_actors {
+            romfs.add(actor);
         }
         Ok(Patches { game, code, romfs })
     }
